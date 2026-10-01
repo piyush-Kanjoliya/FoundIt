@@ -1,0 +1,8 @@
+ALTER TABLE claims ADD COLUMN review_note TEXT;
+
+CREATE TABLE IF NOT EXISTS thread_reads (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  claim_id TEXT NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
+  last_read_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, claim_id)
+);
