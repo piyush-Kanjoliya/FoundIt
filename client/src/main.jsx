@@ -753,15 +753,17 @@ function Board({
             {pauseMap ? (
               <div className="map-fallback">Map paused while you place a report pin…</div>
             ) : (
-              <Suspense fallback={<div className="map-fallback">Loading the campus map…</div>}>
-                <MapboxMap
-                  mode="browse"
-                  items={mapItems}
-                  focusLocation={focusLocation}
-                  onItemSelect={openItem}
-                  className="map-main"
-                />
-              </Suspense>
+              <MapErrorBoundary>
+                <Suspense fallback={<div className="map-fallback">Loading the campus map…</div>}>
+                  <MapboxMap
+                    mode="browse"
+                    items={mapItems}
+                    focusLocation={focusLocation}
+                    onItemSelect={openItem}
+                    className="map-main"
+                  />
+                </Suspense>
+              </MapErrorBoundary>
             )}
             <div className="map-glass-chip map-campus-label">
               <span className="live-dot" /> VIT Vellore <span className="map-separator">·</span>{' '}

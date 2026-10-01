@@ -44,6 +44,8 @@ export default function MapboxMap({
   const itemMarkers = useRef([]);
   const pinMarker = useRef(null);
   const resizeObs = useRef(null);
+  // Queues a focusLocation flyTo that arrived before the engine finished booting
+  const pendingFocusRef = useRef(null);
 
   const itemsRef = useRef(items);
   const locationRef = useRef(location);
@@ -96,6 +98,7 @@ export default function MapboxMap({
           if (!cancelled) {
             setTier('mapbox');
             setMapNotice('Tier 1: Mapbox Vector Engine');
+            drainPendingFocus();
             return;
           }
         } catch (err) {
@@ -110,6 +113,7 @@ export default function MapboxMap({
         if (!cancelled) {
           setTier('maplibre');
           setMapNotice('Tier 2: Keyless Vector Map (OpenFreeMap)');
+          drainPendingFocus();
           return;
         }
       } catch (err) {
@@ -235,6 +239,22 @@ export default function MapboxMap({
     });
   }
 
+  // Apply any focusLocation that arrived before the engine was ready
+  function drainPendingFocus() {
+    if (!pendingFocusRef.current || !map.current) return;
+    const {latitude, longitude} = pendingFocusRef.current;
+    pendingFocusRef.current = null;
+    try {
+      map.current.flyTo({
+        center: [Number(longitude), Number(latitude)],
+        zoom: 17.5,
+        duration: 850,
+      });
+    } catch {
+      // map may not be fully ready yet — silently skip
+    }
+  }
+
   // Draw items for browse mode
   const drawItems = () => {
     const instance = map.current;
@@ -335,14 +355,24 @@ export default function MapboxMap({
     }
   }, [location, tier, mode]);
 
-  // Handle focusLocation flyTo
+  // Handle focusLocation flyTo — queue it if the engine isn't ready yet
   useEffect(() => {
-    if (!focusLocation || !map.current) return;
-    map.current.flyTo({
-      center: [Number(focusLocation.longitude), Number(focusLocation.latitude)],
-      zoom: 17.5,
-      duration: 850,
-    });
+    if (!focusLocation) return;
+    if (map.current) {
+      try {
+        map.current.flyTo({
+          center: [Number(focusLocation.longitude), Number(focusLocation.latitude)],
+          zoom: 17.5,
+          duration: 850,
+        });
+      } catch {
+        // map was destroyed mid-flight; store for next boot
+        pendingFocusRef.current = focusLocation;
+      }
+    } else {
+      // Engine still booting — store for drainPendingFocus()
+      pendingFocusRef.current = focusLocation;
+    }
   }, [focusLocation]);
 
   // Handle selectedVenue flyTo
