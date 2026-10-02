@@ -49,7 +49,9 @@ const itemSchema = itemBaseSchema.superRefine((item, ctx) => {
 })
 
 const PUBLIC_ITEM_FIELDS =
-  'id, kind, title, description, category, venue, occurred_on, challenge, status, latitude, longitude, created_at, CASE WHEN photo_key IS NOT NULL THEN 1 ELSE 0 END AS has_photo'
+  'id, kind, title, description, category, venue, occurred_on, challenge, status, ' +
+  'latitude, longitude, created_at, ' +
+  'CASE WHEN photo_key IS NOT NULL THEN 1 ELSE 0 END AS has_photo'
 
 /**
  * Validates and defaults venue coordinates.

@@ -77,7 +77,8 @@ transaction(() => {
   for (const [kind, title, description, category, venue, challenge, longitude, latitude] of sample)
     if (!db.prepare('SELECT id FROM items WHERE title=?').get(title))
       db.prepare(
-        'INSERT INTO items(id,owner_id,kind,title,description,category,venue,occurred_on,challenge,latitude,longitude) VALUES(?,?,?,?,?,?,?,?,?,?,?)'
+        'INSERT INTO items(id,owner_id,kind,title,description,category,venue,' +
+          'occurred_on,challenge,latitude,longitude) VALUES(?,?,?,?,?,?,?,?,?,?,?)'
       ).run(
         randomUUID(),
         owner,

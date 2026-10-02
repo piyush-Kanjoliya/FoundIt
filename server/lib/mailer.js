@@ -26,7 +26,9 @@ export async function sendVerificationEmail(email, token) {
         from: config.SMTP_FROM,
         to: email,
         subject: 'Verify your VIT Reunite account',
-        text: `Welcome to VIT Reunite!\n\nPlease verify your account within 24 hours:\n${link}\n\nIf you did not request this, please ignore this email.`
+        text:
+          'Welcome to VIT Reunite!\n\nPlease verify your account within 24 hours:\n' +
+          `${link}\n\nIf you did not request this, please ignore this email.`
       })
       return
     } catch (err) {
@@ -58,7 +60,9 @@ export async function sendPasswordResetEmail(email, token) {
         from: config.SMTP_FROM,
         to: email,
         subject: 'Reset your VIT Reunite password',
-        text: `We received a request to reset your password.\n\nReset your password within 1 hour using this link:\n${link}\n\nIf you did not request this, you can safely ignore this email.`
+        text:
+          'We received a request to reset your password.\n\nReset your password within 1 hour ' +
+          `using this link:\n${link}\n\nIf you did not request this, you can safely ignore this email.`
       })
       return
     } catch (err) {

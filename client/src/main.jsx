@@ -604,7 +604,8 @@ function App() {
                       MessageCircle,
                       '03',
                       'Meet and reunite',
-                      'After approval, coordinate at a staffed campus checkpoint in your anonymous thread. Mark it resolved after the return.'
+                      'After approval, coordinate at a staffed campus checkpoint in your anonymous ' +
+                        'thread. Mark it resolved after the return.'
                     ]
                   ].map(([Icon, n, t, p]) => (
                     <div key={n}>

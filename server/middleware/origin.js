@@ -10,7 +10,8 @@ export function checkOrigin(req, res, next) {
   if (!originHeader) {
     return res.status(403).json({
       error:
-        'Request origin is not allowed. Open the app on localhost; for deployment, set APP_ORIGIN to the exact website address and restart the backend.'
+        'Request origin is not allowed. Open the app on localhost; for deployment, ' +
+        'set APP_ORIGIN to the exact website address and restart the backend.'
     })
   }
 
@@ -38,6 +39,7 @@ export function checkOrigin(req, res, next) {
 
   return res.status(403).json({
     error:
-      'Request origin is not allowed. Open the app on localhost; for deployment, set APP_ORIGIN to the exact website address and restart the backend.'
+      'Request origin is not allowed. Open the app on localhost; for deployment, ' +
+      'set APP_ORIGIN to the exact website address and restart the backend.'
   })
 }

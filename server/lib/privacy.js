@@ -10,8 +10,13 @@ const DIGIT_WORD_PATTERN = new RegExp(
 )
 
 // Obfuscated email addresses e.g. "name at domain dot com" or "[at]" or "(at)"
-const OBFUSCATED_EMAIL_PATTERN =
-  /(?:[\w.-]+\s*(?:\[at\]|\(at\))\s*[\w.-]+\s*(?:\.|\bdot\b|\[dot\]|\(dot\))\s*[a-z]{2,}|[\w.-]+\s*\bat\b\s*[\w.-]+\s*(?:\bdot\b|\[dot\]|\(dot\))\s*[a-z]{2,})/i
+const OBFUSCATED_EMAIL_PATTERN = new RegExp(
+  '(?:[\\w.-]+\\s*(?:\\[at\\]|\\(at\\))\\s*[\\w.-]+\\s*' +
+    '(?:\\.|\\bdot\\b|\\[dot\\]|\\(dot\\))\\s*[a-z]{2,}' +
+    '|[\\w.-]+\\s*\\bat\\b\\s*[\\w.-]+\\s*' +
+    '(?:\\bdot\\b|\\[dot\\]|\\(dot\\))\\s*[a-z]{2,})',
+  'i'
+)
 
 // Spaced or punctuated phone numbers (e.g. 9 8 7 6 5 4 3 2 1 0, +91-98765-43210)
 const PHONE_PATTERN = /(?:\+?91[\s-]?)?(?:\b\d[\s.-]*){10,}\b/
