@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import http from 'node:http';
-import https from 'node:https';
 
 const checks = [];
 let hasErrors = false;

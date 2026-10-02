@@ -1,6 +1,6 @@
 import {DatabaseSync} from 'node:sqlite';
 import {mkdirSync, readFileSync, readdirSync, unlinkSync, existsSync} from 'node:fs';
-import {dirname, resolve, join} from 'node:path';
+import {dirname, resolve} from 'node:path';
 import {config} from './config.js';
 
 const dbPath = config.DATABASE_PATH;
@@ -74,7 +74,9 @@ export function runMigrations(database = db) {
         database.exec('COMMIT');
       } catch (err) {
         database.exec('ROLLBACK');
-        throw new Error(`Failed to apply migration ${file}: ${err.message}`);
+        throw new Error(`Failed to apply migration ${file}: ${err.message}`, {
+          cause: err,
+        });
       }
     }
   }

@@ -40,7 +40,6 @@ import {
   Trash2,
   ShieldAlert,
   AlertTriangle,
-  RefreshCw,
 } from 'lucide-react';
 import './styles.css';
 import {applyTheme, cycleTheme, getTheme, watchSystemTheme} from './lib/theme.js';
@@ -1876,7 +1875,7 @@ function ItemDetail({item, user, signIn, onViewLocation, done, notify}) {
 }
 
 // Dashboard with Cancel Handoff (G-3), Owner Edit/Withdraw (G-4), Secret Clue (G-8)
-function Dashboard({meta, revision, refresh, notify, openThread, openEdit, report}) {
+function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
   const [data, setData] = useState(null),
     [error, setError] = useState(''),
     [busy, setBusy] = useState('');
@@ -2148,7 +2147,7 @@ function Dashboard({meta, revision, refresh, notify, openThread, openEdit, repor
 }
 
 // Private Thread with Meetup State Machine (G-6) and Cancel Handoff (G-3)
-function Thread({id, meta, notify, refresh, close}) {
+function Thread({id, meta, notify, refresh}) {
   const [data, setData] = useState(null),
     [error, setError] = useState(''),
     [body, setBody] = useState(''),

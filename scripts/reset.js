@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import {unlinkSync, existsSync} from 'node:fs';
 import {config} from '../server/config.js';
-import {db, runMigrations} from '../server/db.js';
+import {db} from '../server/db.js';
 
 const dbPath = config.DATABASE_PATH;
 if (dbPath !== ':memory:') {
