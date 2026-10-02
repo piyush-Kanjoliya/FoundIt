@@ -1,8 +1,8 @@
 # Validation log
 
 Every result below comes from a command actually run on **2026-10-02** (macOS, Darwin) against the
-final code at commit `83bd1f9` and later. Nothing on this page is aspirational; if a check could not
-be run in this environment, it is listed as such under "Not verified here".
+final code at commit `141202f`. Nothing on this page is aspirational; if a check could not be run in
+this environment, it is listed as such under "Not verified here".
 
 ## Environment
 
@@ -14,19 +14,22 @@ be run in this environment, it is listed as such under "Not verified here".
 
 ## Results
 
-| Check             | Command                                                     | Result                                                                                            |
-| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Integration tests | `npm test`                                                  | **16 passed, 0 failed** (~0.9 s)                                                                  |
-| Production build  | `npm run build`                                             | **Success** (Vite 7, ~3.6 s)                                                                      |
-| Lint              | `npm run lint`                                              | **0 errors, 3 warnings** — the warnings are intentional `react-hooks/exhaustive-deps` in the map  |
-| Formatting        | `npm run format:check`                                      | All files match Prettier                                                                          |
-| Browser e2e       | `npm run test:e2e`                                          | **4 passed in 13.9 s** (board, map fallback, golden path, privacy)                                |
-| Screenshots       | `npm run screenshots`                                       | 10 captures written to `docs/screens/` (5 screens × desktop 1440 px / mobile 390 px)              |
-| Old-Node guard    | `npx -y node@18.17.1 server/index.js`                       | Friendly "not supported" message, exit code 1 before any import error                             |
-| Dev binding       | `npm run dev`, then `lsof -iTCP -sTCP:LISTEN`               | API listens on `127.0.0.1:8080` only — not reachable from the LAN                                 |
-| LAN binding       | `npm run dev:lan`, then `lsof` + `curl` from another origin | API listens on `0.0.0.0:8080`; foreign Origin still rejected with 403, configured LAN origin OK   |
-| Secrets scan      | `git log -p --all -S 'pk.eyJ'` and `git ls-files`           | No Mapbox token in any tracked file or in history; no `.env`, `data/`, `client/dist/` tracked     |
-| Doctor            | `npm run doctor`                                            | Node OK; warns when `VITE_MAPBOX_ACCESS_TOKEN` is missing/placeholder and names the free fallback |
+| Check             | Command                                                       | Result                                                                                            |
+| ----------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Integration tests | `npm test`                                                    | **16 passed, 0 failed** (~0.9 s)                                                                  |
+| Production build  | `npm run build`                                               | **Success** (Vite 7, ~3.6 s)                                                                      |
+| Lint              | `npm run lint`                                                | **0 errors, 3 warnings** — the warnings are intentional `react-hooks/exhaustive-deps` in the map  |
+| Formatting        | `npm run format:check`                                        | All files match Prettier                                                                          |
+| Browser e2e       | `npm run test:e2e`                                            | **4 passed in 13.9 s** (board, map fallback, golden path, privacy)                                |
+| Screenshots       | `npm run screenshots`                                         | 10 captures written to `docs/screens/` (5 screens × desktop 1440 px / mobile 390 px)              |
+| Old-Node guard    | `npx -y node@18.17.1 server/index.js`                         | Friendly "not supported" message, exit code 1 before any import error                             |
+| Dev binding       | `npm run dev`, then `lsof -iTCP -sTCP:LISTEN`                 | API listens on `127.0.0.1:8080` only — not reachable from the LAN                                 |
+| LAN binding       | `npm run dev:lan`, then `lsof` + `curl` from another origin   | API listens on `0.0.0.0:8080`; foreign Origin still rejected with 403, configured LAN origin OK   |
+| Secrets scan      | `git log -p --all -S 'pk.eyJ'` and `git ls-files`             | No Mapbox token in any tracked file or in history; no `.env`, `data/`, `client/dist/` tracked     |
+| Doctor            | `npm run doctor`                                              | Node OK; warns when `VITE_MAPBOX_ACCESS_TOKEN` is missing/placeholder and names the free fallback |
+| Fresh-clone setup | temp-dir clone → `npm ci`, `cp .env.example .env`, `db:init`, | **All steps succeeded**: 307 packages, schema initialized, demo data seeded, **16/16 tests**,     |
+|                   | `db:seed`, `npm test`, `npm run build`                        | build OK. The first run caught a real bug — tests inherited `DEV_AUTO_VERIFY=true` from the       |
+|                   |                                                               | copied `.env.example`; fixed in `141202f` (tests pin it off) and re-verified green.               |
 
 ## E2E coverage in this run
 
