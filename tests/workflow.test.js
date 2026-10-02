@@ -6,6 +6,9 @@ import sharp from 'sharp'
 import {randomUUID} from 'node:crypto'
 process.env.DATABASE_PATH = ':memory:'
 process.env.NODE_ENV = 'test'
+// Keep the suite hermetic: a copied .env (e.g. from .env.example) may enable
+// dev auto-verification, which would flip the sign-in gating assertions.
+process.env.DEV_AUTO_VERIFY = 'false'
 const {app} = await import('../server/app.js')
 const {db} = await import('../server/db.js')
 const origin = 'http://localhost:5173'

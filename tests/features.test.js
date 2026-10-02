@@ -7,6 +7,8 @@ import {randomUUID} from 'node:crypto'
 process.env.DATABASE_PATH = ':memory:'
 process.env.NODE_ENV = 'test'
 process.env.ADMIN_EMAILS = 'admin@vitstudent.ac.in'
+// Hermetic suite: ignore DEV_AUTO_VERIFY from a local .env.
+process.env.DEV_AUTO_VERIFY = 'false'
 
 const {app} = await import('../server/app.js')
 const {db} = await import('../server/db.js')
