@@ -36,6 +36,20 @@ classifieds page.
 - **Photo upload with metadata stripping**: images are re-encoded to WebP with sharp, dropping EXIF
   and any embedded location data.
 
+## Screenshots
+
+The hero above shows the board. More screens (captured by `npm run screenshots` at 1440 px):
+
+|                                              |                                                            |
+| -------------------------------------------- | ---------------------------------------------------------- |
+| ![Item detail](docs/screens/item-detail.png) | ![Report form](docs/screens/report-form.png)               |
+| ![Dashboard](docs/screens/dashboard.png)     | ![Private handoff thread](docs/screens/handoff-thread.png) |
+
+Mobile captures (390 px): [board](docs/screens/mobile.png),
+[item detail](docs/screens/item-detail-mobile.png), [report form](docs/screens/report-form-mobile.png),
+[dashboard](docs/screens/dashboard-mobile.png) and
+[handoff thread](docs/screens/handoff-thread-mobile.png).
+
 ## Prerequisites
 
 - **Node.js 24 recommended; 22.13 minimum** (enforced by `server/preflight.js`, which prints a
@@ -287,6 +301,7 @@ vit-reunite/
 | `npm run build`                            | Build the client into `client/dist`.                                            |
 | `npm test`                                 | 16 integration tests (`node --test` + supertest).                               |
 | `npm run test:e2e`                         | Playwright suite. Run `npm run build` first — it boots the built app.           |
+| `npm run screenshots`                      | Capture docs/screens/ at 1440 px and 390 px (built client + throwaway server).  |
 | `npm run lint`                             | ESLint (flat config, `eslint:recommended` + react-hooks rules).                 |
 | `npm run format` / `npm run format:check`  | Prettier write / check (printWidth 100, single quotes).                         |
 | `npm run doctor`                           | Environment check: Node, config, dirs, optional Mapbox token.                   |
