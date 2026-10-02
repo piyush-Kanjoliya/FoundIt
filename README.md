@@ -1,12 +1,52 @@
-# Reunite · VIT Campus Lost & Found
+# reunite. — campus lost & found for VIT Vellore
 
-A complete local full-stack campus recovery application: React, Vite, Mapbox GL JS, Motion, Lucide, Express and persistent SQLite. No separate database server is needed. The refreshed interface uses soft liquid-glass surfaces, responsive layouts, animated transitions and reduced-motion support.
+Reunite is a full-stack lost-and-found board for the VIT Vellore campus. Anyone can browse lost and
+found reports across 42 campus venues; only verified VIT students can post, claim, and message. When
+someone reports "this is mine", the finder privately verifies the claim with an expected-answer hint
+and an optional proof photo, then the two parties finish the handoff in a private thread with
+proposable meetups at campus checkpoints. The reporter's identity never appears on the public board,
+and no phone numbers or emails can be planted in public text — the point is a safe handoff, not a
+classifieds page.
 
-## Quick start (macOS, Windows or Linux)
+![Reunite desktop board](docs/screens/desktop.png)
 
-Install **Node.js 24 LTS** (minimum 22.13). Extract this ZIP, open a terminal inside `vit-reunite`, and run:
+## Features
 
-```bash
+- **Lost and found feeds** with search, category, venue and kind filters, plus a campus **map view**
+  (see [The map: three tiers](#the-map-three-tiers)).
+- **42 campus venues** and **6 categories** (ID Cards, Room Keys, Calculators, Lab Equipment,
+  Earphones, Wallets) with curated coordinates and **7 checkpoint locations** for safe meetups.
+- **Private claim verification**: a claim sends the finder a verification answer (10–1500 chars) and
+  an optional proof photo that only the two parties can view.
+- **Finder expected-answer hint**: when reporting, the finder records what only the true owner would
+  know; claim answers are compared against it with match guidance.
+- **Anonymous public board**: public item data is a fixed field list — no names, emails, or
+  registration numbers, ever.
+- **Private handoff threads** (only after claim approval) with unread badges, and **meetup
+  propose / accept / decline / counter** with time and checkpoint.
+- **Cancel handoff**: either party can cancel, returning the claim to rejected and the item to the
+  board.
+- **Edit or delete your own report**; the **reporter resolves** an item as returned.
+- **Notifications summary** endpoint polled for a header badge (pending claims, meetup responses,
+  unread messages).
+- **Listing abuse reports** with an **admin moderation** view for `ADMIN_EMAILS`.
+- **Password reset** with single-use tokens, rate limiting, and no account enumeration.
+- **Expanded PII detection** rejects phone numbers, emails and registration numbers in public text
+  and thread messages; search input is escaped before SQL `LIKE`.
+- **Photo upload with metadata stripping**: images are re-encoded to WebP with sharp, dropping EXIF
+  and any embedded location data.
+
+## Prerequisites
+
+- **Node.js 24 recommended; 22.13 minimum** (enforced by `server/preflight.js`, which prints a
+  friendly message instead of a module crash). The repo ships an `.nvmrc`.
+- npm (bundled with Node). No external database — everything lives in SQLite.
+
+## Quick start
+
+macOS / Linux:
+
+```sh
 npm ci
 cp .env.example .env
 npm run db:init
@@ -14,171 +54,285 @@ npm run db:seed
 npm run dev
 ```
 
-Windows PowerShell: replace `cp .env.example .env` with `Copy-Item .env.example .env`.
+Windows PowerShell:
 
-Open **http://localhost:5173**. Backend: **http://localhost:8080**. Keep the terminal open. `Ctrl+C` stops both processes. The supplied public Mapbox token is configured in `.env.example`, so the map works after the copy step above.
-
-The interactive map plots both lost and found reports. In a report, select a campus landmark, then tap the map or drag the pin to the item's last-seen / recovery position. The crosshair can use the device's current location. On the board map, the crosshair can keep the device location updated while it is switched on. Permission is requested by the browser only after the student taps the control. The tracker stays in the browser; only a pin deliberately attached to a report is saved and shown to other students. Opening a report shows its landmark and saved coordinates, with a button to center the main map on that spot. The public `pk.` token is intended for browser maps; restrict its allowed URLs in the Mapbox account before deploying the site.
-
-Students may optionally attach one item photo to a report and one private proof photo to a claim. JPEG, PNG, and WebP files are accepted up to 5 MB; the server re-encodes images as WebP, resizes them to 1600 px, and removes embedded metadata. Report photos are public with the listing. Claim proof is visible only to the reporter and claimant. Photos are saved under `data/uploads`; back up this folder together with the SQLite database.
-
-### Demo accounts
-
-| Role              | Email                    | Password        |
-| ----------------- | ------------------------ | --------------- |
-| Reporter / finder | finder@vitstudent.ac.in  | CampusDemo2026! |
-| Claimant          | student@vitstudent.ac.in | CampusDemo2026! |
-
-These are preverified **local demo accounts**, not real student identities. Seeding is idempotent and disabled in production. The board contains six clearly illustrative sample reports. Skip `db:seed` for a clean database. SQLite is created at `data/reunite.sqlite` and persists across restarts.
-
-### Test the complete workflow
-
-1. Sign in as the student. Open a found item, answer its question, and submit a private verification request.
-2. Sign out and sign in as the finder. Open **My activity**, review the answer, and approve or reject it.
-3. After approval, open **Private handoff**, send a message and propose a campus checkpoint and time.
-4. Sign back in as the student to reply. Threads refresh every five seconds.
-5. Either approved party can select **Mark returned**. The listing disappears from active boards and the conversation becomes read-only.
-
-Lost reports also accept private recovery requests. For these, the reporter sets a question that the person who recovered the item can answer. The approval and handoff flow is the same.
-
-## Student signup and email verification
-
-Signup accepts `@vitstudent.ac.in` or `@vit.ac.in` addresses and VIT-format registration numbers, hashes passwords with bcrypt, and requires email verification before login. This verifies control of a VIT mailbox, not official university SSO enrollment. Local development prints the one-use, 24-hour verification URL in the backend terminal; open it and then sign in. SMTP-configured environments send that link by email. The API never returns verification tokens. No phone number is collected.
-
-Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` in `.env` to deliver real verification email. Production startup requires SMTP. Never commit `.env` or demo databases.
-
-## Production build and local execution
-
-```bash
-npm run build
-# Set APP_ORIGIN=http://localhost:8080 in .env for this single-server mode.
-npm start
+```powershell
+npm ci
+Copy-Item .env.example .env
+npm run db:init
+npm run db:seed
+npm run dev
 ```
 
-Open http://localhost:8080. Express serves the built frontend and API from one origin. Development accepts localhost, 127.0.0.1, and IPv6 loopback origins on any port. Production requires an exact APP_ORIGIN match. Vite uses port 5173 and reports an error if it is occupied instead of silently switching ports.
+Then open **http://localhost:5173** — the Vite dev server proxies `/api` to the API on port 8080.
 
-For an internet deployment, use Node 24, `NODE_ENV=production`, an HTTPS `APP_ORIGIN`, working SMTP, a TLS reverse proxy, and a persistent writable volume for `DATABASE_PATH`. Secure session cookies require HTTPS. This SQLite edition is intended for a single backend process; use a shared database and shared rate-limit store before running multiple replicas. Back up the database using SQLite's backup facilities while running, or copy the database only after stopping the application. No cloud deployment is included.
+Production-style run (single process serving the built client and the API):
 
-## Requirements implemented
+```sh
+npm run build
+npm start          # http://127.0.0.1:8080 by default
+```
 
-- Separate lost/found feeds, text search, category/venue filters and pagination.
-- Interactive campus map with all matching item pins, a nearby-items rail, and Mapbox live geolocation controls.
-- New reports include an exact map pin for where an item was last seen or found; the official campus landmark stays as a readable label.
-- Reporters can upload a public item photo; claimants can attach private photo proof. Uploads are size/type checked, re-encoded as WebP, resized and stripped of image metadata. Private proof photos are served only after verifying the reporter or claimant's session.
-- Existing SQLite databases gain nullable latitude / longitude columns automatically. Older reports without pins remain visible in list view.
-- Existing SQLite databases gain nullable item-photo and claim-proof references automatically. Uploaded image files are stored separately in `data/uploads` and must be backed up with the database.
-- The location picker stores only the chosen item location. Live student location is permission-gated, browser-only and never sent to the server.
-- Exactly 42 permitted landmarks: SJT, TT, PRP, SMV, MB, GDN, CDMM; MH-A–MH-T; LH-A–LH-J; Gazebo, Food Mall, DC; Central Library; Sports Complex.
-- Exactly six categories: ID Cards, Room Keys, Calculators, Lab Equipment, Earphones, Wallets.
-- Public item responses use an explicit allowlist, with no reporter ID, name, email, registration or phone.
-- Public descriptions reject common registration, email and phone formats; students should use nonidentifying descriptions. This is pattern-based filtering, not a guarantee against deliberate obfuscation. Challenges are public questions; verification answers stay private.
-- Private claimant responses visible only to that claimant and the reporter, with approve/reject controls restricted to the reporter.
-- Only one approved request per item, enforced by a database index and transaction. Approval rejects other pending requests and reserves the listing for handoff.
-- Anonymous in-app conversations restricted to the approved parties. Sender IDs and identities are never returned. No mobile contact details are required; common contact formats are blocked in chat.
-- Safe checkpoint proposals and local-time scheduling with shared IST display. Both parties confirm proposals in the thread.
-- Either reporter or approved claimant can resolve a listing; pending requests close, active feeds exclude it and messages become read-only.
-- Zod validation, parameterized SQL, server authorization, HttpOnly/SameSite session cookies, hashed session/verification tokens, seven-day sessions, Origin enforcement, Helmet, request size limits and rate limiting.
-- Loading skeletons, empty states, success feedback, validation errors, disabled busy buttons, focus-contained dialogs, keyboard navigation, responsive layout and reduced motion.
+`npm run doctor` checks Node, env, uploads dir and the optional Mapbox token, and prints what to fix.
 
-## Structure
+## Database bootstrap
 
-```text
+All state lives in `data/` (gitignored): `reunite.sqlite` (with `-wal`/`-shm` side files) and
+`data/uploads/` for re-encoded photos.
+
+| Script             | What it does                                                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `npm run db:init`  | Creates the data directory, opens the SQLite database and applies `server/migrations/*.sql` in order (scripts/bootstrap.js). |
+| `npm run db:seed`  | Inserts two demo accounts and six sample reports (scripts/seed.js). Refuses to run in production.                            |
+| `npm run db:reset` | Deletes `reunite.sqlite` (+ side files), re-applies migrations (scripts/reset.js). Uploads are left alone.                   |
+
+Migrations are applied automatically by `server/db.js` **on every server start** as well: each
+numbered `.sql` file runs inside a transaction and is recorded in a `schema_migrations` table, so
+re-runs are no-ops. To start clean:
+
+```sh
+npm run db:reset    # fresh empty schema
+npm run db:seed     # optional demo data
+```
+
+## Environment variables
+
+Everything is validated at startup by `server/config.js` (Zod). Copy `.env.example` to `.env` and
+adjust — none of these are secrets baked into the repo.
+
+| Variable                   | Default                                                  | Production                        | Purpose                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                 | `development`                                            | set `production`                  | Enables production rules (see two rows below).                                                                                                        |
+| `PORT`                     | `8080`                                                   | —                                 | Port for the API and the built client.                                                                                                                |
+| `HOST`                     | `127.0.0.1` in development/test, `0.0.0.0` in production | —                                 | Bind address. Loopback by default so the dev server is not exposed on the LAN; `dev:lan` sets `0.0.0.0` on purpose (trade-off documented below).      |
+| `APP_ORIGIN`               | `http://localhost:5173`                                  | set your public URL               | Trusted web origin checked by `server/middleware/origin.js`; also used in email links.                                                                |
+| `DATABASE_PATH`            | `./data/reunite.sqlite`                                  | —                                 | SQLite database file (`:memory:` supported for tests).                                                                                                |
+| `UPLOADS_DIR`              | `./data/uploads`                                         | —                                 | Where re-encoded WebP photos are stored.                                                                                                              |
+| `VITE_MAPBOX_ACCESS_TOKEN` | unset                                                    | —                                 | Optional Mapbox token enabling the Tier-1 basemap. Baked into the client bundle at build time — treat it as public and restrict it (see map section). |
+| `SMTP_HOST`                | unset                                                    | **required**                      | SMTP server for verification / reset email. Startup fails without it in production.                                                                   |
+| `SMTP_PORT`                | `587`                                                    | —                                 | SMTP port.                                                                                                                                            |
+| `SMTP_USER` / `SMTP_PASS`  | unset                                                    | recommended                       | SMTP credentials.                                                                                                                                     |
+| `SMTP_FROM`                | `VIT Reunite <no-reply@vitstudent.ac.in>`                | —                                 | From header for outgoing mail.                                                                                                                        |
+| `ADMIN_EMAILS`             | empty                                                    | —                                 | Comma-separated emails whose accounts get the Moderation view.                                                                                        |
+| `DEV_AUTO_VERIFY`          | `false`                                                  | **forbidden**                     | Auto-approves email verification in development. Startup refuses it in production.                                                                    |
+| `TRUST_PROXY`              | `false`                                                  | set `true` behind a reverse proxy | Honors `X-Forwarded-For` so rate limiting sees real client IPs.                                                                                       |
+
+### HOST and `dev:lan` trade-off
+
+By default the dev API listens on `127.0.0.1` only, so nobody else on the Wi-Fi can reach it.
+`npm run dev:lan` deliberately binds the backend to `0.0.0.0` (via scripts/dev-backend.js) and
+starts Vite with `--host` so a phone on the same network can use the app — run `node scripts/print-lan.js`
+to get the URL to open. That convenience means anyone on your LAN can reach your dev instance: use
+it only on trusted networks. The Origin allow-list still applies; to test from another device,
+`APP_ORIGIN` must include that LAN URL.
+
+## Demo accounts and a 2-minute walkthrough
+
+`npm run db:seed` creates (development only — the sign-in dialog prints these too):
+
+| Account | Email                      | Password          |
+| ------- | -------------------------- | ----------------- |
+| Finder  | `finder@vitstudent.ac.in`  | `CampusDemo2026!` |
+| Student | `student@vitstudent.ac.in` | `CampusDemo2026!` |
+
+The walkthrough (≈2 minutes):
+
+1. **Sign in as the finder**, press **Report an item**, pick a category and venue, describe it, and
+   set the **private expected answer** — a detail only the true owner could match. The item appears
+   on the board.
+2. **Sign out, sign in as the student**, open the item, press **This is mine**, type your
+   verification answer (optionally attach a proof photo) and send the request.
+3. **Back as the finder**, the **My activity** nav shows a badge. Open the claim, compare the answer
+   with your hint, and press **Approve**. The item moves to handoff and other pending claims are
+   auto-rejected.
+4. **Private handoff thread** opens for both parties. Send a message, **propose a meetup** (time +
+   checkpoint); the student accepts (or counters).
+5. After the physical handoff, the finder presses **Mark returned** and confirms — the item leaves
+   the board and the reunited counter on the board ticks up.
+
+## The map: three tiers
+
+The map view (MapboxMap.jsx) degrades gracefully instead of going blank:
+
+1. **Mapbox GL** — used only when `VITE_MAPBOX_ACCESS_TOKEN` is set **and** the token verifies
+   against the Mapbox API (invalid/restricted tokens fall through, never hang the UI).
+2. **Keyless vector map** — MapLibre GL with the free OpenFreeMap "Liberty" style. No token, no
+   account. This is what you get by default.
+3. **Offline schematic** — a hand-drawn campus diagram with venue pins, used when vector tiles
+   cannot load (blocked network, offline). A tier chip in the corner always says which tier is
+   active.
+
+**The repo does not ship a Mapbox token.** If you want Tier 1: create a token at
+<https://account.mapbox.com/access-tokens/>, restrict it to the URLs you will serve the app from,
+put it **only** in your local `.env` as `VITE_MAPBOX_ACCESS_TOKEN`, and run `npm run build` again.
+Because the token is embedded in the client bundle, keep it URL-restricted and never commit `.env`.
+`npm run doctor` warns when the token is missing or still the `.env.example` placeholder and says the
+app will use the free map fallback.
+
+## Requirements traceability
+
+Each row: requirement → where it is implemented → the test that proves it (all names are real, from
+`tests/` and `e2e/`).
+
+| Requirement                                                 | Implementation                                      | Test                                                                                      |
+| ----------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Venue coordinates, validation, nearest checkpoint           | server/venues.js, client/src/lib/campus.js          | `G-2: Venue coordinates default, validation, and nearest checkpoint`                      |
+| Cancel handoff returns claim to rejected, item to active    | server/routes/claims.js                             | `G-3: Cancel handoff returns claim to rejected and item to active`                        |
+| Owner edits/deletes own report, authorization boundaries    | server/routes/items.js                              | `G-4: Owner edit and delete report with authorization boundaries`                         |
+| Meetup propose → accept / decline / counter state machine   | server/routes/claims.js                             | `G-6: Meetup state machine (propose -> accept/decline/counter)`                           |
+| Notifications summary reflects pending activity             | server/routes/notifications.js                      | `G-7: Notifications summary endpoint reflects pending activity`                           |
+| Expected-answer hint private to finder, match guidance      | server/lib/privacy.js, server/routes/claims.js      | `G-8: Expected answer hint is private to finder and matches guidance`                     |
+| Abuse reporting + admin moderation endpoints                | server/routes/items.js, server/routes/admin.js      | `G-9: Listing abuse report and admin moderation endpoints`                                |
+| Password reset: single use, rate limited, no enumeration    | server/routes/auth.js                               | `G-10: Password reset (single use, rate limited, no enumeration)`                         |
+| Expanded PII detection + `LIKE` escaping                    | server/lib/privacy.js                               | `G-11: Expanded PII detection (spaced numbers, words, handles, LIKE escape)`              |
+| Full private recovery lifecycle + authorization             | server/routes/*                                     | `complete private recovery lifecycle and authorization boundaries`                        |
+| Report photo public; proof photo restricted to both parties | server/lib/photos.js, server/routes/claims.js       | `report photo is public and ownership proof stays restricted to both parties`             |
+| Validation, anonymity, origin protection                    | server/middleware/origin.js, server/routes/items.js | `validation, anonymity and origin protection`                                             |
+| Reject workflow; reporter resolves item                     | server/routes/claims.js, server/routes/items.js     | `reject workflow and reporter resolution`                                                 |
+| Email verification gates sign-in; tokens single use         | server/routes/auth.js                               | `student email verification gates sign-in and tokens are one use`                         |
+| Origin allow-list: loopback ports ok, external rejected     | server/middleware/origin.js                         | `development permits alternate loopback ports and rejects external or missing origins`    |
+| Refuse unsupported Node runtimes with a clear message       | server/preflight.js                                 | `preflight accepts Node >= 22.13 and rejects older runtimes`                              |
+| Board loads seeded items; empty state after filtering       | client/src/main.jsx                                 | e2e: `board loads with seeded items and shows the empty state after filtering to nothing` |
+| Map never blank when Mapbox is unreachable                  | client/src/MapboxMap.jsx                            | e2e: `map never ends blank when Mapbox hosts are blocked`                                 |
+| Golden path: claim → approve → message → returned           | client + server                                     | e2e: `golden path: claim, approve, message, mark returned, item leaves the board`         |
+| Claimant never receives finder identity                     | server/routes/*                                     | e2e: `claimant session never receives finder identity in responses or page text`          |
+
+## API reference
+
+All endpoints are under `/api`, JSON only, and guarded by an Origin allow-list. Auth = httpOnly
+session cookie.
+
+| Method & path                                                      | Auth     | Purpose                                                                            |
+| ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------- |
+| `POST /api/auth/register`                                          | –        | Register with a `@vitstudent.ac.in` / `@vit.ac.in` email; sends verification mail. |
+| `POST /api/auth/verify`                                            | –        | Consume a one-use email verification token.                                        |
+| `POST /api/auth/resend-verification`                               | –        | Re-send the verification email (rate limited).                                     |
+| `POST /api/auth/login` / `POST /api/auth/logout`                   | –        | Sign in / sign out (rate limited).                                                 |
+| `GET /api/auth/me`                                                 | ✓        | Current user (or `null`).                                                          |
+| `POST /api/auth/forgot-password` / `POST /api/auth/reset-password` | –        | Single-use reset tokens, rate limited, no enumeration.                             |
+| `GET /api/items`                                                   | –        | Board feed with `kind`, `category`, `venue`, `search`, pagination.                 |
+| `GET /api/map/items`                                               | –        | Same filters, coordinates for the map view.                                        |
+| `GET /api/stats`                                                   | –        | Board counters (active reports, reunited, venues).                                 |
+| `POST /api/items`                                                  | ✓        | Create report, optional photo (multipart), private expected answer.                |
+| `GET /api/items/:id` / `GET /api/items/:id/photo`                  | –        | Public detail + photo (fixed public field list).                                   |
+| `PATCH /api/items/:id` / `DELETE /api/items/:id`                   | owner    | Edit / delete your own report.                                                     |
+| `POST /api/items/:id/resolve`                                      | owner    | Mark the item returned; leaves the board.                                          |
+| `POST /api/items/:id/reports`                                      | ✓        | Report a listing for moderation.                                                   |
+| `POST /api/items/:id/claims`                                       | ✓        | Submit a private claim: verification answer + optional proof photo.                |
+| `GET /api/claims/:id/proof-photo`                                  | parties  | Proof photo, restricted to reporter + claimant.                                    |
+| `PATCH /api/claims/:id`                                            | reporter | Approve / reject the claim (approval opens the thread, auto-rejects rivals).       |
+| `POST /api/claims/:id/cancel-handoff`                              | parties  | Cancel an active handoff (G-3).                                                    |
+| `PATCH /api/claims/:id/meetup`                                     | parties  | Propose or counter a meetup (time + checkpoint).                                   |
+| `POST /api/claims/:id/meetup/accept` / `.../decline`               | parties  | Respond to a proposal.                                                             |
+| `GET /api/dashboard`                                               | ✓        | My reports, my claims, and their statuses in one call.                             |
+| `GET /api/claims/:id/thread` / `POST /api/claims/:id/messages`     | parties  | Private handoff thread (PII-scanned messages).                                     |
+| `GET /api/notifications/summary`                                   | ✓        | Badge counts: pending claims, meetup responses, unread messages.                   |
+| `GET /api/admin/reports` / `DELETE /api/admin/items/:id`           | admin    | Moderation queue and takedown.                                                     |
+| `GET /api/health`                                                  | –        | Liveness probe used by CI and e2e.                                                 |
+
+## Privacy model, in plain language
+
+1. **Campus identity is verified.** Registration only accepts `@vitstudent.ac.in` / `@vit.ac.in`
+   addresses, and sign-in stays locked until the emailed link is clicked. Tokens are single use.
+   (`DEV_AUTO_VERIFY=true` skips this in development only; production startup refuses it.)
+2. **The public board is anonymous.** Public item responses are assembled from a fixed field list in
+   server/routes/items.js — the reporter's name, email and registration number are simply never
+   selected.
+3. **Verification instead of exposure.** A claim sends a private answer and optional proof photo (an
+   endpoint only the two parties can call). While a claim is pending, the claimant receives no trace
+   of the finder's identity anywhere in API responses or page text.
+4. **A private room, not a public comment box.** Messaging exists only inside an approved two-party
+   thread. Messages and public reports are scanned by server/lib/privacy.js, which rejects phone
+   numbers, email addresses and registration-style IDs before they are stored.
+5. **Photos are sanitized.** Uploads are re-encoded to WebP with sharp, stripping EXIF metadata
+   (including GPS tags) before anything is written to disk.
+6. **Sessions are unguessable.** Login issues a random token stored hashed in SQLite and sent as an
+   httpOnly cookie; passwords use bcrypt; auth and claim endpoints are rate limited.
+
+## Project structure
+
+```
 vit-reunite/
-  client/
-    src/main.jsx       React screens, forms, board and dialogs
-    src/MapboxMap.jsx  Mapbox view, item pins and location picker
-    src/styles.css    Liquid-glass visual system and animation
-    vite.config.js     Development API proxy
-  server/
-    app.js             Express endpoints, auth and ownership checks
-    db.js              Database schema and transactional operations
-    constants.js       Strict campus venue/category/checkpoint lists
-    index.js           Server entry point
-  scripts/
-    bootstrap.js       Database initialization
-    seed.js            Repeatable demo bootstrap
-  tests/
-    workflow.test.js   Recovery lifecycle and security integration tests
-  .github/workflows/ci.yml
-  .env.example
-  package.json
-  package-lock.json
+├── server/               # Express 5 API (node:sqlite)
+│   ├── index.js          # Entry: preflight Node check, then binds HOST:PORT
+│   ├── app.js            # Helmet/CSP, origin allow-list, routes, static client
+│   ├── config.js         # Zod-validated environment
+│   ├── db.js             # SQLite setup + migration runner
+│   ├── preflight.js      # Node >= 22.13 check (imported before everything)
+│   ├── routes/           # auth, items, claims, threads, notifications, admin
+│   ├── middleware/       # auth (sessions), origin (allow-list), errors
+│   ├── lib/              # mailer, photos (sharp re-encode), privacy (PII)
+│   └── migrations/       # numbered .sql files, applied in order
+├── client/               # React 19 + Vite 7 workspace
+│   └── src/
+│       ├── main.jsx      # Whole app: board, report, dashboard, threads, admin
+│       ├── MapboxMap.jsx # Tiered map: Mapbox → MapLibre → offline schematic
+│       ├── features/map/ # OfflineCampusMap.jsx (tier 3)
+│       ├── lib/          # campus.js (venues/checkpoints), theme.js
+│       └── styles.css    # Design tokens incl. dark theme
+├── scripts/              # bootstrap, seed, reset, doctor, dev-backend, print-lan
+├── tests/                # 16 node:test integration tests (supertest)
+├── e2e/                  # 4 Playwright specs (real browser, real server)
+├── docs/                 # screenshots (docs/screens/) + VALIDATION.md
+└── data/                 # gitignored runtime state (sqlite, uploads)
 ```
 
-## API overview
+## Scripts
 
-| Method   | Endpoint                                     | Purpose                                                   |
-| -------- | -------------------------------------------- | --------------------------------------------------------- |
-| GET      | /api/meta, /api/stats, /api/health           | Metadata, board counts, health                            |
-| POST     | /api/auth/register, /verify, /login, /logout | Student account lifecycle                                 |
-| GET      | /api/auth/me                                 | Current private account                                   |
-| GET/POST | /api/items                                   | Filtered public board / authenticated report              |
-| GET      | /api/map/items                               | All matching public items with saved map pins (up to 500) |
-| GET      | /api/items/:id                               | Anonymous public listing                                  |
-| GET      | /api/items/:id/photo                         | Public image attached to a report                         |
-| POST     | /api/items/:id/claims                        | Private verification request                              |
-| GET      | /api/claims/:id/proof-photo                  | Private proof image, reporter and claimant only           |
-| GET      | /api/dashboard                               | Current student's reports and private requests            |
-| PATCH    | /api/claims/:id                              | Reporter-only approve/reject                              |
-| GET      | /api/claims/:id/thread                       | Approved parties' anonymous conversation                  |
-| POST     | /api/claims/:id/messages                     | Approved party message                                    |
-| PATCH    | /api/claims/:id/meetup                       | Checkpoint/time proposal                                  |
-| POST     | /api/items/:id/resolve                       | Authorized lifecycle completion                           |
+| Command                                    | What it does                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------- |
+| `npm run dev`                              | API with `node --watch` + Vite dev server (loopback only).                      |
+| `npm run dev:lan`                          | Same, but the API binds `0.0.0.0` and Vite uses `--host` (see trade-off above). |
+| `npm start`                                | Serve API + built client from one process (`PORT`, `HOST`).                     |
+| `npm run build`                            | Build the client into `client/dist`.                                            |
+| `npm test`                                 | 16 integration tests (`node --test` + supertest).                               |
+| `npm run test:e2e`                         | Playwright suite. Run `npm run build` first — it boots the built app.           |
+| `npm run lint`                             | ESLint (flat config, `eslint:recommended` + react-hooks rules).                 |
+| `npm run format` / `npm run format:check`  | Prettier write / check (printWidth 100, single quotes).                         |
+| `npm run doctor`                           | Environment check: Node, config, dirs, optional Mapbox token.                   |
+| `npm run db:init` / `db:seed` / `db:reset` | Database bootstrap (see above).                                                 |
 
-Every mutating API request must send an allowed `Origin`: an exact `APP_ORIGIN` match, or a loopback origin in development. The browser does this automatically. Authenticated endpoints use the session cookie.
+## CI
 
-## Validation
+`.github/workflows/ci.yml` runs on Node 24 / Ubuntu: `npm ci` → `format:check` → `lint` → `test` →
+`build` → Playwright with Chromium → `test:e2e`. Failed e2e runs upload the Playwright report as an
+artifact.
 
-```bash
-npm test
-npm run build
-```
+## Deployment notes
 
-Integration tests use an isolated in-memory database and verify approvals, rejections, duplicate requests, self-claims, outsider access denial, private-data projections, lost reports, messages, checkpoint scheduling, lifecycle closure, invalid venues, public PII rejection, authentication and CSRF-origin rejection. GitHub Actions runs these checks automatically.
-
-## Publish a public GitHub repository
-
-The ZIP is repository-ready. Create an **empty public** repository called `vit-reunite` in your GitHub account, then:
-
-```bash
-git init
-git add .
-git commit -m "Build VIT Reunite full-stack recovery portal"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/vit-reunite.git
-git push -u origin main
-```
-
-Or, with authenticated GitHub CLI:
-
-```bash
-git init
-git add .
-git commit -m "Build VIT Reunite full-stack recovery portal"
-gh repo create vit-reunite --public --source=. --remote=origin --push
-```
-
-A public repository has not been created by this ZIP. Replace `YOUR_USERNAME` with your account. The ignore rules exclude dependencies, build output, credentials and the database.
+- Set `NODE_ENV=production`, a real `APP_ORIGIN`, and `SMTP_HOST` (+ credentials). The server
+  refuses to start otherwise (and refuses `DEV_AUTO_VERIFY=true`).
+- Behind a reverse proxy set `TRUST_PROXY=true` so rate limits see real client IPs; keep `HOST=0.0.0.0`
+  (the production default) if the proxy runs on another host/container.
+- One process serves everything: `npm run build && npm start`. The Express app serves `client/dist`
+  and the API on the same port, with Helmet CSP.
+- `data/` must be a persistent volume (SQLite + uploaded photos). Back up `reunite.sqlite` and
+  `uploads/`.
+- To rotate the Mapbox token, change `.env` and rebuild — the old token stays baked into any existing
+  `client/dist` output until you rebuild.
 
 ## Troubleshooting
 
-- `node:sqlite` unavailable: install Node 24 LTS and check `node --version`.
-- Connection error: run `npm run dev` from the root folder and check both terminal processes.
-- Origin rejected: match `.env` `APP_ORIGIN` to the exact URL and restart the backend.
-- Cannot sign in: use the seeded demo credentials or verify your signup link.
-- Port in use: stop the other process or change `PORT` and the Vite proxy together.
-- Map does not load: check `VITE_MAPBOX_ACCESS_TOKEN` in `.env`, restart `npm run dev`, and confirm the public token is enabled.
-- Location button is disabled: allow location access in the browser. Geolocation requires HTTPS outside `localhost`.
-- Fonts unavailable offline: the UI falls back to system sans-serif; item illustrations and icons are bundled code.
+- **`Error: Node.js vXX is not supported`** — install Node ≥ 22.13 (`.nvmrc` pins 24 for nvm users).
+- **Port already in use** — `PORT=3000 npm start`, or stop the other process.
+- **"Use your VIT student email."** — registration only accepts `@vitstudent.ac.in` / `@vit.ac.in`.
+- **Verification or reset email never arrives** — SMTP is not configured (`npm run doctor`). In
+  development you can set `DEV_AUTO_VERIFY=true` instead.
+- **Map looks schematic / "Schematic" chip** — that is the offline tier: no `VITE_MAPBOX_ACCESS_TOKEN`
+  or blocked network. Everything still works; add a restricted token for vector maps.
+- **Phone on the LAN cannot reach the dev server** — run `npm run dev:lan` (not `dev`), open the URL
+  printed by `node scripts/print-lan.js`, and add that origin to `APP_ORIGIN`.
+- **e2e tests fail to connect** — run `npm run build` first; `npm start` serves the built client.
+- **Fresh start** — `npm run db:reset` wipes reports and accounts (uploads stay on disk).
 
-This is a student project, not an official VIT service. Campus checkpoint labels are coordination choices; students should confirm desk availability.
+## Security notes
 
-## Design
+- Never commit `.env`; `.env.example` contains placeholders only. The Vite build embeds
+  `VITE_MAPBOX_ACCESS_TOKEN` into `client/dist` — restrict the token by URL and rotate it if it ever
+  leaks.
+- If you discover a security issue, please open a private security advisory via GitHub rather than a
+  public issue.
 
-Editable Figma concept screens: https://www.figma.com/design/ZjBQx6vbcqNquyDq5PLhTx
+## Licence
 
-The Figma file contains a campus board, private verification view, and approval/handoff view. The runnable React UI adds responsive behavior and animation.
-
-## License
-
-MIT. See LICENSE.
+[MIT](LICENSE) © 2026 Reunite contributors.
