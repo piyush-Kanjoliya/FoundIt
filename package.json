@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "concurrently -k \"node --watch server/index.js\" \"npm run dev -w client\"",
-    "dev:lan": "concurrently -k \"node --watch server/index.js\" \"npm run dev:lan -w client\"",
+    "dev:lan": "concurrently -k \"node --watch scripts/dev-backend.js\" \"npm run dev:lan -w client\"",
     "start": "node server/index.js",
     "build": "npm run build -w client",
     "doctor": "node scripts/doctor.js",
