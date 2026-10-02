@@ -18,6 +18,9 @@ import {
   Contact,
   LayoutGrid,
   MessageCircle,
+  Monitor,
+  Moon,
+  Sun,
   LogOut,
   ChevronDown,
   LoaderCircle,
@@ -40,8 +43,11 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import './styles.css';
+import {applyTheme, cycleTheme, getTheme, watchSystemTheme} from './lib/theme.js';
 
 const MapboxMap = lazy(() => import('./MapboxMap.jsx'));
+const initialTheme = getTheme();
+applyTheme(initialTheme);
 const icons = {
   'ID Cards': Contact,
   'Room Keys': KeyRound,
@@ -98,10 +104,13 @@ function App() {
     [mapError, setMapError] = useState(''),
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(''),
-    [revision, setRevision] = useState(0);
+    [revision, setRevision] = useState(0),
+    [theme, setTheme] = useState(initialTheme);
 
   const notify = useCallback(message => setToast(message), []);
   const refresh = () => setRevision(r => r + 1);
+
+  useEffect(() => watchSystemTheme(() => setTheme(applyTheme)), []);
 
   useEffect(() => {
     Promise.all([api('/auth/me'), api('/meta')])
@@ -250,6 +259,22 @@ function App() {
             </button>
           </nav>
           <div className="account">
+            <button
+              className="theme-toggle"
+              title={`Theme: ${theme} (click to change)`}
+              aria-label={`Colour theme: ${theme}. Activate to switch to ${
+                theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system'
+              }.`}
+              onClick={() => setTheme(t => cycleTheme(t))}
+            >
+              {theme === 'system' ? (
+                <Monitor size={17} />
+              ) : theme === 'light' ? (
+                <Sun size={17} />
+              ) : (
+                <Moon size={17} />
+              )}
+            </button>
             {user ? (
               <>
                 <button
