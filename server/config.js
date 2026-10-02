@@ -1,15 +1,11 @@
-import 'dotenv/config';
-import {z} from 'zod';
+import 'dotenv/config'
+import {z} from 'zod'
 
 const envSchema = z
   .object({
-    NODE_ENV: z
-      .enum(['development', 'production', 'test'])
-      .default('development'),
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().int().min(1000).max(65535).default(8080),
-    HOST: z
-      .string()
-      .optional(),
+    HOST: z.string().optional(),
     APP_ORIGIN: z.string().default('http://localhost:5173'),
     DATABASE_PATH: z.string().default('./data/reunite.sqlite'),
     UPLOADS_DIR: z.string().default('./data/uploads'),
@@ -21,17 +17,11 @@ const envSchema = z
     SMTP_FROM: z.string().default('VIT Reunite <no-reply@vitstudent.ac.in>'),
     ADMIN_EMAILS: z.string().default(''),
     DEV_AUTO_VERIFY: z
-      .preprocess(
-        val => (val === 'true' || val === true ? true : false),
-        z.boolean()
-      )
+      .preprocess(val => (val === 'true' || val === true ? true : false), z.boolean())
       .default(false),
     TRUST_PROXY: z
-      .preprocess(
-        val => (val === 'true' || val === true ? true : false),
-        z.boolean()
-      )
-      .default(false),
+      .preprocess(val => (val === 'true' || val === true ? true : false), z.boolean())
+      .default(false)
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === 'production') {
@@ -39,39 +29,37 @@ const envSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['DEV_AUTO_VERIFY'],
-          message: 'DEV_AUTO_VERIFY must never be enabled in production.',
-        });
+          message: 'DEV_AUTO_VERIFY must never be enabled in production.'
+        })
       }
       if (!data.SMTP_HOST) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['SMTP_HOST'],
-          message: 'Production requires SMTP_HOST for email verification.',
-        });
+          message: 'Production requires SMTP_HOST for email verification.'
+        })
       }
     }
-  });
+  })
 
-const parsed = envSchema.safeParse(process.env);
+const parsed = envSchema.safeParse(process.env)
 if (!parsed.success) {
-  console.error('Configuration validation failed:');
+  console.error('Configuration validation failed:')
   for (const issue of parsed.error.issues) {
-    console.error(` - ${issue.path.join('.')}: ${issue.message}`);
+    console.error(` - ${issue.path.join('.')}: ${issue.message}`)
   }
-  process.exit(1);
+  process.exit(1)
 }
 
 export const config = {
   ...parsed.data,
   // Loopback only in development/test; containers and deployments need 0.0.0.0.
-  HOST:
-    parsed.data.HOST ??
-    (parsed.data.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'),
+  HOST: parsed.data.HOST ?? (parsed.data.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'),
   isProduction: parsed.data.NODE_ENV === 'production',
   isTest: parsed.data.NODE_ENV === 'test',
   isDev: parsed.data.NODE_ENV === 'development',
   adminEmails: parsed.data.ADMIN_EMAILS.split(',')
     .map(e => e.trim().toLowerCase())
     .filter(Boolean),
-  origin: parsed.data.APP_ORIGIN.trim().replace(/\/$/, ''),
-};
+  origin: parsed.data.APP_ORIGIN.trim().replace(/\/$/, '')
+}

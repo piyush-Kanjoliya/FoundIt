@@ -1,4 +1,4 @@
-import {schematicPoint} from '../../lib/campus.js';
+import {schematicPoint} from '../../lib/campus.js'
 
 export default function OfflineCampusMap({
   items = [],
@@ -8,19 +8,19 @@ export default function OfflineCampusMap({
   onLocationChange,
   onItemSelect,
   mode,
-  selectedVenue,
+  selectedVenue
 }) {
-  const venues = Object.keys(venueDetails || {});
+  const venues = Object.keys(venueDetails || {})
 
   const pick = venue => {
-    const details = venueDetails[venue];
-    if (!details || mode !== 'picker') return;
+    const details = venueDetails[venue]
+    if (!details || mode !== 'picker') return
     onLocationChange?.({
       latitude: details.latitude,
       longitude: details.longitude,
-      venue,
-    });
-  };
+      venue
+    })
+  }
 
   return (
     <svg
@@ -36,8 +36,8 @@ export default function OfflineCampusMap({
         VIT Vellore · schematic (approximate)
       </text>
       {venues.map(venue => {
-        const {x, y} = schematicPoint(venue, venueDetails, campusBounds);
-        const active = selectedVenue === venue;
+        const {x, y} = schematicPoint(venue, venueDetails, campusBounds)
+        const active = selectedVenue === venue
         return (
           <g key={venue} onClick={() => pick(venue)} style={{cursor: 'pointer'}}>
             <rect
@@ -60,10 +60,10 @@ export default function OfflineCampusMap({
               {venue.length > 8 ? venue.slice(0, 7) : venue}
             </text>
           </g>
-        );
+        )
       })}
       {items.map(item => {
-        const {x, y} = schematicPoint(item.venue, venueDetails, campusBounds);
+        const {x, y} = schematicPoint(item.venue, venueDetails, campusBounds)
         return (
           <circle
             key={item.id}
@@ -76,7 +76,7 @@ export default function OfflineCampusMap({
           >
             <title>{item.title}</title>
           </circle>
-        );
+        )
       })}
       {location ? (
         <circle
@@ -92,13 +92,11 @@ export default function OfflineCampusMap({
               campusBounds
             ).x
           }
-          cy={
-            schematicPoint(selectedVenue, venueDetails, campusBounds).y - 3
-          }
+          cy={schematicPoint(selectedVenue, venueDetails, campusBounds).y - 3}
           r="1.8"
           fill="#1d4ed8"
         />
       ) : null}
     </svg>
-  );
+  )
 }

@@ -1,56 +1,49 @@
-import {createHash} from 'node:crypto';
-import rateLimit from 'express-rate-limit';
-import {db} from '../db.js';
-import {config} from '../config.js';
+import {createHash} from 'node:crypto'
+import rateLimit from 'express-rate-limit'
+import {db} from '../db.js'
+import {config} from '../config.js'
 
-export const hashToken = token =>
-  createHash('sha256').update(token).digest('hex');
+export const hashToken = token => createHash('sha256').update(token).digest('hex')
 
-const USER_FIELDS = 'id, name, email, registration, verified';
+const USER_FIELDS = 'id, name, email, registration, verified'
 
 export function attachUser(req, _res, next) {
-  const token = req.cookies?.reunite_session;
+  const token = req.cookies?.reunite_session
   if (token) {
     const session = db
       .prepare('SELECT user_id FROM sessions WHERE token = ? AND expires > ?')
-      .get(hashToken(token), Date.now());
+      .get(hashToken(token), Date.now())
     if (session) {
-      req.user = db
-        .prepare(`SELECT ${USER_FIELDS} FROM users WHERE id = ?`)
-        .get(session.user_id);
+      req.user = db.prepare(`SELECT ${USER_FIELDS} FROM users WHERE id = ?`).get(session.user_id)
       if (req.user) {
-        req.user.is_admin = config.adminEmails.includes(
-          req.user.email.toLowerCase()
-        );
+        req.user.is_admin = config.adminEmails.includes(req.user.email.toLowerCase())
       }
     }
   }
-  next();
+  next()
 }
 
 export function requireAuth(req, res, next) {
   if (!req.user) {
-    return res.status(401).json({error: 'Sign in to continue.'});
+    return res.status(401).json({error: 'Sign in to continue.'})
   }
   if (!req.user.verified) {
-    return res.status(403).json({error: 'Verify your VIT email first.'});
+    return res.status(403).json({error: 'Verify your VIT email first.'})
   }
-  next();
+  next()
 }
 
 export function requireAdmin(req, res, next) {
   if (!req.user) {
-    return res.status(401).json({error: 'Sign in to continue.'});
+    return res.status(401).json({error: 'Sign in to continue.'})
   }
   if (!req.user.verified) {
-    return res.status(403).json({error: 'Verify your VIT email first.'});
+    return res.status(403).json({error: 'Verify your VIT email first.'})
   }
   if (!config.adminEmails.includes(req.user.email.toLowerCase())) {
-    return res
-      .status(403)
-      .json({error: 'Forbidden: Admin authorization required.'});
+    return res.status(403).json({error: 'Forbidden: Admin authorization required.'})
   }
-  next();
+  next()
 }
 
 /**
@@ -64,6 +57,6 @@ export const claimRateLimit = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: {
-    error: 'Too many claim requests from this account. Please wait an hour.',
-  },
-});
+    error: 'Too many claim requests from this account. Please wait an hour.'
+  }
+})

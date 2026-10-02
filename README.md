@@ -24,10 +24,10 @@ Students may optionally attach one item photo to a report and one private proof 
 
 ### Demo accounts
 
-| Role | Email | Password |
-|---|---|---|
-| Reporter / finder | finder@vitstudent.ac.in | CampusDemo2026! |
-| Claimant | student@vitstudent.ac.in | CampusDemo2026! |
+| Role              | Email                    | Password        |
+| ----------------- | ------------------------ | --------------- |
+| Reporter / finder | finder@vitstudent.ac.in  | CampusDemo2026! |
+| Claimant          | student@vitstudent.ac.in | CampusDemo2026! |
 
 These are preverified **local demo accounts**, not real student identities. Seeding is idempotent and disabled in production. The board contains six clearly illustrative sample reports. Skip `db:seed` for a clean database. SQLite is created at `data/reunite.sqlite` and persists across restarts.
 
@@ -107,23 +107,23 @@ vit-reunite/
 
 ## API overview
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | /api/meta, /api/stats, /api/health | Metadata, board counts, health |
-| POST | /api/auth/register, /verify, /login, /logout | Student account lifecycle |
-| GET | /api/auth/me | Current private account |
-| GET/POST | /api/items | Filtered public board / authenticated report |
-| GET | /api/map/items | All matching public items with saved map pins (up to 500) |
-| GET | /api/items/:id | Anonymous public listing |
-| GET | /api/items/:id/photo | Public image attached to a report |
-| POST | /api/items/:id/claims | Private verification request |
-| GET | /api/claims/:id/proof-photo | Private proof image, reporter and claimant only |
-| GET | /api/dashboard | Current student's reports and private requests |
-| PATCH | /api/claims/:id | Reporter-only approve/reject |
-| GET | /api/claims/:id/thread | Approved parties' anonymous conversation |
-| POST | /api/claims/:id/messages | Approved party message |
-| PATCH | /api/claims/:id/meetup | Checkpoint/time proposal |
-| POST | /api/items/:id/resolve | Authorized lifecycle completion |
+| Method   | Endpoint                                     | Purpose                                                   |
+| -------- | -------------------------------------------- | --------------------------------------------------------- |
+| GET      | /api/meta, /api/stats, /api/health           | Metadata, board counts, health                            |
+| POST     | /api/auth/register, /verify, /login, /logout | Student account lifecycle                                 |
+| GET      | /api/auth/me                                 | Current private account                                   |
+| GET/POST | /api/items                                   | Filtered public board / authenticated report              |
+| GET      | /api/map/items                               | All matching public items with saved map pins (up to 500) |
+| GET      | /api/items/:id                               | Anonymous public listing                                  |
+| GET      | /api/items/:id/photo                         | Public image attached to a report                         |
+| POST     | /api/items/:id/claims                        | Private verification request                              |
+| GET      | /api/claims/:id/proof-photo                  | Private proof image, reporter and claimant only           |
+| GET      | /api/dashboard                               | Current student's reports and private requests            |
+| PATCH    | /api/claims/:id                              | Reporter-only approve/reject                              |
+| GET      | /api/claims/:id/thread                       | Approved parties' anonymous conversation                  |
+| POST     | /api/claims/:id/messages                     | Approved party message                                    |
+| PATCH    | /api/claims/:id/meetup                       | Checkpoint/time proposal                                  |
+| POST     | /api/items/:id/resolve                       | Authorized lifecycle completion                           |
 
 Every mutating API request must send an allowed `Origin`: an exact `APP_ORIGIN` match, or a loopback origin in development. The browser does this automatically. Authenticated endpoints use the session cookie.
 

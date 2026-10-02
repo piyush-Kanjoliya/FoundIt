@@ -1,6 +1,6 @@
-import React, {lazy, Suspense, useEffect, useState, useCallback, useRef} from 'react';
-import {createRoot} from 'react-dom/client';
-import {motion, AnimatePresence, MotionConfig} from 'motion/react';
+import React, {lazy, Suspense, useEffect, useState, useCallback, useRef} from 'react'
+import {createRoot} from 'react-dom/client'
+import {motion, AnimatePresence, MotionConfig} from 'motion/react'
 import {
   ArrowUpRight,
   ArrowRight,
@@ -39,46 +39,46 @@ import {
   Edit3,
   Trash2,
   ShieldAlert,
-  AlertTriangle,
-} from 'lucide-react';
-import './styles.css';
-import {applyTheme, cycleTheme, getTheme, watchSystemTheme} from './lib/theme.js';
+  AlertTriangle
+} from 'lucide-react'
+import './styles.css'
+import {applyTheme, cycleTheme, getTheme, watchSystemTheme} from './lib/theme.js'
 
-const MapboxMap = lazy(() => import('./MapboxMap.jsx'));
-const initialTheme = getTheme();
-applyTheme(initialTheme);
+const MapboxMap = lazy(() => import('./MapboxMap.jsx'))
+const initialTheme = getTheme()
+applyTheme(initialTheme)
 const icons = {
   'ID Cards': Contact,
   'Room Keys': KeyRound,
   Calculators: Calculator,
   'Lab Equipment': FlaskConical,
   Earphones: Headphones,
-  Wallets: Wallet,
-};
+  Wallets: Wallet
+}
 
 const api = async (path, options = {}) => {
   const res = await fetch('/api' + path, {
     ...options,
     headers: {'Content-Type': 'application/json', ...options.headers},
-    credentials: 'same-origin',
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
-  return data;
-};
+    credentials: 'same-origin'
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.')
+  return data
+}
 
-const post = (p, b, method = 'POST') => api(p, {method, body: JSON.stringify(b)});
+const post = (p, b, method = 'POST') => api(p, {method, body: JSON.stringify(b)})
 
 const postFormData = async (path, formData, method = 'POST') => {
   const res = await fetch('/api' + path, {
     method,
     body: formData,
-    credentials: 'same-origin',
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
-  return data;
-};
+    credentials: 'same-origin'
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.')
+  return data
+}
 
 function App() {
   const [user, setUser] = useState(null),
@@ -104,121 +104,121 @@ function App() {
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(''),
     [revision, setRevision] = useState(0),
-    [theme, setTheme] = useState(initialTheme);
+    [theme, setTheme] = useState(initialTheme)
 
-  const notify = useCallback(message => setToast(message), []);
-  const refresh = () => setRevision(r => r + 1);
+  const notify = useCallback(message => setToast(message), [])
+  const refresh = () => setRevision(r => r + 1)
 
-  useEffect(() => watchSystemTheme(() => setTheme(applyTheme)), []);
+  useEffect(() => watchSystemTheme(() => setTheme(applyTheme)), [])
 
   useEffect(() => {
     Promise.all([api('/auth/me'), api('/meta')])
       .then(([a, m]) => {
-        setUser(a.user);
-        setMeta(m);
+        setUser(a.user)
+        setMeta(m)
       })
-      .catch(e => setError(e.message));
+      .catch(e => setError(e.message))
 
-    const token = new URLSearchParams(location.search).get('verify');
+    const token = new URLSearchParams(location.search).get('verify')
     if (token) {
       post('/auth/verify', {token})
         .then(d => {
-          notify(d.message);
-          setModal({type: 'auth'});
+          notify(d.message)
+          setModal({type: 'auth'})
         })
-        .catch(e => notify(e.message));
-      history.replaceState({}, '', location.pathname);
+        .catch(e => notify(e.message))
+      history.replaceState({}, '', location.pathname)
     }
-  }, [notify]);
+  }, [notify])
 
   // Notifications summary poll (G-7)
   useEffect(() => {
     if (!user) {
-      setNotifs({total: 0, pendingClaimsCount: 0, activeHandoffsCount: 0});
-      return;
+      setNotifs({total: 0, pendingClaimsCount: 0, activeHandoffsCount: 0})
+      return
     }
     const checkNotifs = () => {
       api('/notifications/summary')
         .then(setNotifs)
-        .catch(() => {});
-    };
-    checkNotifs();
-    const interval = setInterval(checkNotifs, 12000);
-    return () => clearInterval(interval);
-  }, [user, revision]);
+        .catch(() => {})
+    }
+    checkNotifs()
+    const interval = setInterval(checkNotifs, 12000)
+    return () => clearInterval(interval)
+  }, [user, revision])
 
   useEffect(() => {
-    const t = setTimeout(() => setQuery(search), 300);
-    return () => clearTimeout(t);
-  }, [search]);
+    const t = setTimeout(() => setQuery(search), 300)
+    return () => clearTimeout(t)
+  }, [search])
 
   useEffect(() => {
-    setNum(1);
-  }, [kind, category, venue, query]);
+    setNum(1)
+  }, [kind, category, venue, query])
 
   useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    setError('');
-    const p = new URLSearchParams({kind, page: String(num)});
-    if (category) p.set('category', category);
-    if (venue) p.set('venue', venue);
-    if (query) p.set('search', query);
+    let alive = true
+    setLoading(true)
+    setError('')
+    const p = new URLSearchParams({kind, page: String(num)})
+    if (category) p.set('category', category)
+    if (venue) p.set('venue', venue)
+    if (query) p.set('search', query)
 
     Promise.all([api('/items?' + p), api('/stats')])
       .then(([d, s]) => {
         if (alive) {
-          setItems(d.items);
-          setTotal(d.total);
-          setStats(s);
+          setItems(d.items)
+          setTotal(d.total)
+          setStats(s)
         }
       })
       .catch(e => {
-        if (alive) setError(e.message);
+        if (alive) setError(e.message)
       })
       .finally(() => {
-        if (alive) setLoading(false);
-      });
+        if (alive) setLoading(false)
+      })
 
     return () => {
-      alive = false;
-    };
-  }, [kind, category, venue, query, num, revision]);
+      alive = false
+    }
+  }, [kind, category, venue, query, num, revision])
 
   useEffect(() => {
-    if (viewMode !== 'map') return;
-    let alive = true;
-    setMapLoading(true);
-    setMapError('');
-    const p = new URLSearchParams({kind});
-    if (category) p.set('category', category);
-    if (venue) p.set('venue', venue);
-    if (query) p.set('search', query);
+    if (viewMode !== 'map') return
+    let alive = true
+    setMapLoading(true)
+    setMapError('')
+    const p = new URLSearchParams({kind})
+    if (category) p.set('category', category)
+    if (venue) p.set('venue', venue)
+    if (query) p.set('search', query)
 
     api('/map/items?' + p)
       .then(d => {
-        if (alive) setMapItems(d.items);
+        if (alive) setMapItems(d.items)
       })
       .catch(e => {
-        if (alive) setMapError(e.message);
+        if (alive) setMapError(e.message)
       })
       .finally(() => {
-        if (alive) setMapLoading(false);
-      });
+        if (alive) setMapLoading(false)
+      })
 
     return () => {
-      alive = false;
-    };
-  }, [viewMode, kind, category, venue, query, revision]);
+      alive = false
+    }
+  }, [viewMode, kind, category, venue, query, revision])
 
   useEffect(() => {
     if (toast) {
-      const t = setTimeout(() => setToast(''), 5500);
-      return () => clearTimeout(t);
+      const t = setTimeout(() => setToast(''), 5500)
+      return () => clearTimeout(t)
     }
-  }, [toast]);
+  }, [toast])
 
-  const needAuth = action => (user ? action() : setModal({type: 'auth'}));
+  const needAuth = action => (user ? action() : setModal({type: 'auth'}))
 
   return (
     <MotionConfig reducedMotion="user">
@@ -287,12 +287,12 @@ function App() {
                   aria-label="Sign out"
                   onClick={async () => {
                     try {
-                      await post('/auth/logout', {});
-                      setUser(null);
-                      setPage('board');
-                      notify('Signed out.');
+                      await post('/auth/logout', {})
+                      setUser(null)
+                      setPage('board')
+                      notify('Signed out.')
                     } catch (e) {
-                      notify(e.message);
+                      notify(e.message)
                     }
                   }}
                 >
@@ -320,11 +320,13 @@ function App() {
                   <span className="live-dot" /> A LITTLE KINDNESS. A BIG DIFFERENCE.
                 </div>
                 <h1>
-                  Lost on campus.<br />
+                  Lost on campus.
+                  <br />
                   <span>Found by community.</span>
                 </h1>
                 <p>
-                  Your calculator. Your keys. Your peace of mind.<br />
+                  Your calculator. Your keys. Your peace of mind.
+                  <br />
                   Let’s get them back where they belong.
                 </p>
                 <div className="hero-actions">
@@ -516,16 +518,16 @@ function App() {
                   edit: 'Edit your campus report',
                   item: modal.item?.title,
                   thread: 'Your private handoff',
-                  how: 'From lost to reunited',
+                  how: 'From lost to reunited'
                 }[modal.type]
               }
             >
               {modal.type === 'auth' ? (
                 <Auth
                   onSuccess={u => {
-                    setUser(u);
-                    setModal(null);
-                    notify('Welcome back, ' + u.name.split(' ')[0] + '.');
+                    setUser(u)
+                    setModal(null)
+                    notify('Welcome back, ' + u.name.split(' ')[0] + '.')
                   }}
                   notify={notify}
                 />
@@ -534,9 +536,9 @@ function App() {
                   meta={meta}
                   kind={modal.kind}
                   done={m => {
-                    setModal(null);
-                    refresh();
-                    notify(m);
+                    setModal(null)
+                    refresh()
+                    notify(m)
                   }}
                 />
               ) : modal.type === 'edit' ? (
@@ -544,9 +546,9 @@ function App() {
                   item={modal.item}
                   meta={meta}
                   done={m => {
-                    setModal(null);
-                    refresh();
-                    notify(m);
+                    setModal(null)
+                    refresh()
+                    notify(m)
                   }}
                 />
               ) : modal.type === 'item' ? (
@@ -557,21 +559,21 @@ function App() {
                     signIn={() => setModal({type: 'auth'})}
                     notify={notify}
                     onViewLocation={() => {
-                      const item = modal.item;
+                      const item = modal.item
                       if (item.latitude != null && item.longitude != null) {
                         setFocusLocation({
                           latitude: Number(item.latitude),
-                          longitude: Number(item.longitude),
-                        });
+                          longitude: Number(item.longitude)
+                        })
                       }
-                      setModal(null);
-                      setPage('board');
-                      setViewMode('map');
+                      setModal(null)
+                      setPage('board')
+                      setViewMode('map')
                     }}
                     done={m => {
-                      setModal(null);
-                      refresh();
-                      notify(m);
+                      setModal(null)
+                      refresh()
+                      notify(m)
                     }}
                   />
                 </DialogBoundary>
@@ -590,20 +592,20 @@ function App() {
                       Search,
                       '01',
                       'Report or discover',
-                      'Tag an official campus venue and choose the exact spot on the map.',
+                      'Tag an official campus venue and choose the exact spot on the map.'
                     ],
                     [
                       ShieldCheck,
                       '02',
                       'Verify, privately',
-                      'Answer the reporter’s custom challenge. Only the reporter reviews your response.',
+                      'Answer the reporter’s custom challenge. Only the reporter reviews your response.'
                     ],
                     [
                       MessageCircle,
                       '03',
                       'Meet and reunite',
-                      'After approval, coordinate at a staffed campus checkpoint in your anonymous thread. Mark it resolved after the return.',
-                    ],
+                      'After approval, coordinate at a staffed campus checkpoint in your anonymous thread. Mark it resolved after the return.'
+                    ]
                   ].map(([Icon, n, t, p]) => (
                     <div key={n}>
                       <Icon />
@@ -619,7 +621,7 @@ function App() {
         </AnimatePresence>
       </div>
     </MotionConfig>
-  );
+  )
 }
 
 function Board({
@@ -647,7 +649,7 @@ function Board({
   setViewMode,
   focusLocation,
   pauseMap,
-  openItem,
+  openItem
 }) {
   return (
     <section className="board" id="board">
@@ -726,7 +728,7 @@ function Board({
           <LayoutGrid size={15} /> All items
         </button>
         {meta.categories.map(c => {
-          const Icon = icons[c] || Package;
+          const Icon = icons[c] || Package
           return (
             <button
               key={c}
@@ -736,7 +738,7 @@ function Board({
               <Icon size={16} />
               {c}
             </button>
-          );
+          )
         })}
       </div>
       <div className="results-label">
@@ -858,9 +860,9 @@ function Board({
           <button
             className="outline"
             onClick={() => {
-              setCategory('');
-              setVenue('');
-              setSearch('');
+              setCategory('')
+              setVenue('')
+              setSearch('')
             }}
           >
             Clear filters
@@ -869,11 +871,7 @@ function Board({
       )}
       {viewMode === 'list' && total > 12 && (
         <div className="pagination">
-          <button
-            className="outline"
-            disabled={num === 1}
-            onClick={() => setNum(n => n - 1)}
-          >
+          <button className="outline" disabled={num === 1} onClick={() => setNum(n => n - 1)}>
             Previous
           </button>
           <span>
@@ -889,11 +887,11 @@ function Board({
         </div>
       )}
     </section>
-  );
+  )
 }
 
 function MapResult({item, onClick}) {
-  const Icon = icons[item.category] || Package;
+  const Icon = icons[item.category] || Package
   return (
     <button className="map-result" onClick={onClick}>
       <span className={'map-result-icon ' + item.kind}>
@@ -911,11 +909,11 @@ function MapResult({item, onClick}) {
       </span>
       <ArrowUpRight size={16} />
     </button>
-  );
+  )
 }
 
 function ItemCard({item, index, onClick}) {
-  const Icon = icons[item.category] || Package;
+  const Icon = icons[item.category] || Package
   return (
     <motion.button
       layout
@@ -950,7 +948,7 @@ function ItemCard({item, index, onClick}) {
           <span>
             {new Date(item.occurred_on + 'T00:00:00').toLocaleDateString('en-IN', {
               day: 'numeric',
-              month: 'short',
+              month: 'short'
             })}
           </span>
         </div>
@@ -967,38 +965,40 @@ function ItemCard({item, index, onClick}) {
         </div>
       </div>
     </motion.button>
-  );
+  )
 }
 
 function Modal({title, close, children}) {
-  const ref = useRef();
+  const ref = useRef()
   useEffect(() => {
-    const previous = document.activeElement;
-    document.body.style.overflow = 'hidden';
-    ref.current?.focus();
+    const previous = document.activeElement
+    document.body.style.overflow = 'hidden'
+    ref.current?.focus()
     const key = e => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') close()
       if (e.key === 'Tab') {
-        const a = ref.current.querySelectorAll('button:not(:disabled),input,textarea,select,a[href]');
-        if (!a.length) return;
+        const a = ref.current.querySelectorAll(
+          'button:not(:disabled),input,textarea,select,a[href]'
+        )
+        if (!a.length) return
         const first = a[0],
-          last = a[a.length - 1];
+          last = a[a.length - 1]
         if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
+          e.preventDefault()
+          last.focus()
         } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
+          e.preventDefault()
+          first.focus()
         }
       }
-    };
-    document.addEventListener('keydown', key);
+    }
+    document.addEventListener('keydown', key)
     return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', key);
-      previous?.focus();
-    };
-  }, [close]);
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', key)
+      previous?.focus()
+    }
+  }, [close])
 
   return (
     <motion.div
@@ -1007,7 +1007,7 @@ function Modal({title, close, children}) {
       animate={{opacity: 1}}
       exit={{opacity: 0}}
       onClick={e => {
-        if (e.target === e.currentTarget) close();
+        if (e.target === e.currentTarget) close()
       }}
     >
       <motion.section
@@ -1033,23 +1033,32 @@ function Modal({title, close, children}) {
         {children}
       </motion.section>
     </motion.div>
-  );
+  )
 }
 
-function Form({children, onSubmit, label = 'Submit', busy, setBusy, error, setError, canSubmit = true}) {
+function Form({
+  children,
+  onSubmit,
+  label = 'Submit',
+  busy,
+  setBusy,
+  error,
+  setError,
+  canSubmit = true
+}) {
   return (
     <form
       onSubmit={async e => {
-        e.preventDefault();
-        setBusy(true);
-        setError('');
-        const formData = new FormData(e.currentTarget);
+        e.preventDefault()
+        setBusy(true)
+        setError('')
+        const formData = new FormData(e.currentTarget)
         try {
-          await onSubmit(Object.fromEntries(formData), formData);
+          await onSubmit(Object.fromEntries(formData), formData)
         } catch (e) {
-          setError(e.message);
+          setError(e.message)
         } finally {
-          setBusy(false);
+          setBusy(false)
         }
       }}
     >
@@ -1065,16 +1074,16 @@ function Form({children, onSubmit, label = 'Submit', busy, setBusy, error, setEr
         <ArrowRight size={17} />
       </button>
     </form>
-  );
+  )
 }
 
 class DialogBoundary extends React.Component {
-  state = {failed: false};
+  state = {failed: false}
   static getDerivedStateFromError() {
-    return {failed: true};
+    return {failed: true}
   }
   componentDidCatch(error) {
-    console.error('Item detail failed to render.', error);
+    console.error('Item detail failed to render.', error)
   }
   render() {
     return this.state.failed ? (
@@ -1088,17 +1097,17 @@ class DialogBoundary extends React.Component {
       </div>
     ) : (
       this.props.children
-    );
+    )
   }
 }
 
 class MapErrorBoundary extends React.Component {
-  state = {failed: false, error: ''};
+  state = {failed: false, error: ''}
   static getDerivedStateFromError(e) {
-    return {failed: true, error: e?.message || 'Map could not load'};
+    return {failed: true, error: e?.message || 'Map could not load'}
   }
   componentDidCatch(error) {
-    console.error('MapboxMap failed to render.', error);
+    console.error('MapboxMap failed to render.', error)
   }
   render() {
     return this.state.failed ? (
@@ -1110,7 +1119,7 @@ class MapErrorBoundary extends React.Component {
           flexDirection: 'column',
           gap: '8px',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'center'
         }}
       >
         <MapPin size={22} />
@@ -1119,52 +1128,56 @@ class MapErrorBoundary extends React.Component {
       </div>
     ) : (
       this.props.children
-    );
+    )
   }
 }
 
-function PhotoField({label = 'Add a photo', hint = 'JPEG, PNG, or WebP · up to 5 MB', privatePhoto = false}) {
+function PhotoField({
+  label = 'Add a photo',
+  hint = 'JPEG, PNG, or WebP · up to 5 MB',
+  privatePhoto = false
+}) {
   const [preview, setPreview] = useState(''),
-    [error, setError] = useState('');
+    [error, setError] = useState('')
   const input = useRef(null),
-    previewRef = useRef('');
+    previewRef = useRef('')
 
   useEffect(
     () => () => {
-      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current)
     },
     []
-  );
+  )
 
   const clear = () => {
-    if (input.current) input.current.value = '';
-    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-    previewRef.current = '';
-    setPreview('');
-    setError('');
-  };
+    if (input.current) input.current.value = ''
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current)
+    previewRef.current = ''
+    setPreview('')
+    setError('')
+  }
 
   const choose = e => {
-    const file = e.target.files?.[0];
-    setError('');
+    const file = e.target.files?.[0]
+    setError('')
     if (!file) {
-      clear();
-      return;
+      clear()
+      return
     }
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      clear();
-      setError('Choose a JPEG, PNG, or WebP image.');
-      return;
+      clear()
+      setError('Choose a JPEG, PNG, or WebP image.')
+      return
     }
     if (file.size > 5 * 1024 * 1024) {
-      clear();
-      setError('Photos must be 5 MB or smaller.');
-      return;
+      clear()
+      setError('Photos must be 5 MB or smaller.')
+      return
     }
-    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-    previewRef.current = URL.createObjectURL(file);
-    setPreview(previewRef.current);
-  };
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current)
+    previewRef.current = URL.createObjectURL(file)
+    setPreview(previewRef.current)
+  }
 
   return (
     <div className={'photo-upload ' + (privatePhoto ? 'photo-upload-private' : '')}>
@@ -1200,7 +1213,7 @@ function PhotoField({label = 'Add a photo', hint = 'JPEG, PNG, or WebP · up to 
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function Field({label, ...props}) {
@@ -1209,28 +1222,29 @@ function Field({label, ...props}) {
       <span>{label}</span>
       <input {...props} />
     </label>
-  );
+  )
 }
 
 // Authentication with sign-in, signup, forgot password & reset password (G-10)
 function Auth({onSuccess, notify}) {
-  const [tab, setTab] = useState('login'); // 'login' | 'register' | 'forgot' | 'reset'
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [tab, setTab] = useState('login') // 'login' | 'register' | 'forgot' | 'reset'
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
 
   return (
     <>
       <div className="privacy-note">
-        <ShieldCheck size={20} /> VIT email verification. Your personal details never appear on the board.
+        <ShieldCheck size={20} /> VIT email verification. Your personal details never appear on the
+        board.
       </div>
 
       <div className="feed-tabs auth-tabs">
         <button
           className={tab === 'login' ? 'selected' : ''}
           onClick={() => {
-            setTab('login');
-            setError('');
+            setTab('login')
+            setError('')
           }}
         >
           Sign in
@@ -1238,8 +1252,8 @@ function Auth({onSuccess, notify}) {
         <button
           className={tab === 'register' ? 'selected' : ''}
           onClick={() => {
-            setTab('register');
-            setError('');
+            setTab('register')
+            setError('')
           }}
         >
           Create account
@@ -1254,8 +1268,8 @@ function Auth({onSuccess, notify}) {
           <button
             className="outline"
             onClick={() => {
-              setMessage('');
-              setTab('login');
+              setMessage('')
+              setTab('login')
             }}
           >
             Back to sign in
@@ -1265,7 +1279,8 @@ function Auth({onSuccess, notify}) {
         <div>
           <h3>Forgot your password?</h3>
           <p className="small-note">
-            Enter your registered VIT student email. If registered, we will dispatch a password reset link.
+            Enter your registered VIT student email. If registered, we will dispatch a password
+            reset link.
           </p>
           <Form
             busy={busy}
@@ -1274,8 +1289,8 @@ function Auth({onSuccess, notify}) {
             setError={setError}
             label="Send reset link"
             onSubmit={async v => {
-              const res = await post('/auth/forgot-password', v);
-              setMessage(res.message);
+              const res = await post('/auth/forgot-password', v)
+              setMessage(res.message)
             }}
           >
             <Field
@@ -1292,8 +1307,8 @@ function Auth({onSuccess, notify}) {
               type="button"
               className="text-btn"
               onClick={() => {
-                setTab('reset');
-                setError('');
+                setTab('reset')
+                setError('')
               }}
             >
               Have a reset token? Enter it here
@@ -1302,8 +1317,8 @@ function Auth({onSuccess, notify}) {
               type="button"
               className="text-btn"
               onClick={() => {
-                setTab('login');
-                setError('');
+                setTab('login')
+                setError('')
               }}
             >
               Back to sign in
@@ -1313,7 +1328,9 @@ function Auth({onSuccess, notify}) {
       ) : tab === 'reset' ? (
         <div>
           <h3>Set a new password</h3>
-          <p className="small-note">Enter your 64-character reset token and your new strong password.</p>
+          <p className="small-note">
+            Enter your 64-character reset token and your new strong password.
+          </p>
           <Form
             busy={busy}
             setBusy={setBusy}
@@ -1321,9 +1338,9 @@ function Auth({onSuccess, notify}) {
             setError={setError}
             label="Update password"
             onSubmit={async v => {
-              const res = await post('/auth/reset-password', v);
-              notify(res.message);
-              setTab('login');
+              const res = await post('/auth/reset-password', v)
+              notify(res.message)
+              setTab('login')
             }}
           >
             <Field
@@ -1348,8 +1365,8 @@ function Auth({onSuccess, notify}) {
               type="button"
               className="text-btn"
               onClick={() => {
-                setTab('login');
-                setError('');
+                setTab('login')
+                setError('')
               }}
             >
               Back to sign in
@@ -1365,17 +1382,24 @@ function Auth({onSuccess, notify}) {
           label={tab === 'register' ? 'Create student account' : 'Sign in'}
           onSubmit={async v => {
             if (tab === 'register') {
-              const d = await post('/auth/register', v);
-              setMessage(d.message);
+              const d = await post('/auth/register', v)
+              setMessage(d.message)
             } else {
-              const d = await post('/auth/login', v);
-              onSuccess(d.user);
+              const d = await post('/auth/login', v)
+              onSuccess(d.user)
             }
           }}
         >
           {tab === 'register' && (
             <>
-              <Field label="Your name" name="name" required minLength={2} maxLength={70} autoComplete="name" />
+              <Field
+                label="Your name"
+                name="name"
+                required
+                minLength={2}
+                maxLength={70}
+                autoComplete="name"
+              />
               <Field
                 label="Registration number (private)"
                 name="registration"
@@ -1408,8 +1432,8 @@ function Auth({onSuccess, notify}) {
                 type="button"
                 className="text-btn"
                 onClick={() => {
-                  setTab('forgot');
-                  setError('');
+                  setTab('forgot')
+                  setError('')
                 }}
               >
                 Forgot your password?
@@ -1425,7 +1449,7 @@ function Auth({onSuccess, notify}) {
         Password: CampusDemo2026! · requires <code>npm run db:seed</code>
       </p>
     </>
-  );
+  )
 }
 
 // Report Creation with optional secret clue for finders (G-8)
@@ -1433,15 +1457,18 @@ function Report({meta, kind, done}) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [pin, setPin] = useState(null),
-    [selectedKind, setSelectedKind] = useState(kind);
+    [selectedKind, setSelectedKind] = useState(kind)
 
-  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  const coords = pin ? `${pin.latitude.toFixed(5)}, ${pin.longitude.toFixed(5)}` : '';
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10)
+  const coords = pin ? `${pin.latitude.toFixed(5)}, ${pin.longitude.toFixed(5)}` : ''
 
   return (
     <>
       <div className="privacy-note">
-        <Lock size={19} /> Share only the item’s location. The map never follows or stores your movement.
+        <Lock size={19} /> Share only the item’s location. The map never follows or stores your
+        movement.
       </div>
       <Form
         busy={busy}
@@ -1458,11 +1485,7 @@ function Report({meta, kind, done}) {
         </div>
         <label className="field">
           <span>Report type</span>
-          <select
-            name="kind"
-            value={selectedKind}
-            onChange={e => setSelectedKind(e.target.value)}
-          >
+          <select name="kind" value={selectedKind} onChange={e => setSelectedKind(e.target.value)}>
             <option value="lost">I lost an item</option>
             <option value="found">I found an item</option>
           </select>
@@ -1496,7 +1519,9 @@ function Report({meta, kind, done}) {
         <div className="report-step report-step-location">
           <span>02 · THE LOCATION</span>
           <h3>Pin the spot on campus</h3>
-          <p>Choose the official landmark, then tap or drag the map pin to where you last saw it.</p>
+          <p>
+            Choose the official landmark, then tap or drag the map pin to where you last saw it.
+          </p>
         </div>
         <label className="field">
           <span>Campus landmark</span>
@@ -1549,11 +1574,16 @@ function Report({meta, kind, done}) {
             maxLength={1000}
           />
         </label>
-        <PhotoField label="Item photo (optional, public)" hint="Visible on the campus board · avoid IDs, serial numbers, and faces" />
+        <PhotoField
+          label="Item photo (optional, public)"
+          hint="Visible on the campus board · avoid IDs, serial numbers, and faces"
+        />
 
         <label className="field">
           <span>
-            {selectedKind === 'found' ? 'Ownership verification question' : 'Question for the person who finds it'}
+            {selectedKind === 'found'
+              ? 'Ownership verification question'
+              : 'Question for the person who finds it'}
           </span>
           <textarea
             name="challenge"
@@ -1563,7 +1593,9 @@ function Report({meta, kind, done}) {
             minLength={8}
             maxLength={250}
           />
-          <small>The question is visible; the answer stays private. Never post the answer here.</small>
+          <small>
+            The question is visible; the answer stays private. Never post the answer here.
+          </small>
         </label>
 
         {selectedKind === 'found' && (
@@ -1575,28 +1607,31 @@ function Report({meta, kind, done}) {
               placeholder="e.g. Blue star sticker on back, serial number ending in 42"
               maxLength={500}
             />
-            <small>Stored securely for your eyes only to help quickly verify incoming requests.</small>
+            <small>
+              Stored securely for your eyes only to help quickly verify incoming requests.
+            </small>
           </label>
         )}
       </Form>
     </>
-  );
+  )
 }
 
 // Edit Report Component (G-4: Owner Edit)
 function EditReport({item, meta, done}) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
   const initialPin =
     item.latitude != null && item.longitude != null
       ? {latitude: Number(item.latitude), longitude: Number(item.longitude)}
-      : null;
-  const [pin, setPin] = useState(initialPin);
+      : null
+  const [pin, setPin] = useState(initialPin)
 
   return (
     <>
       <div className="privacy-note">
-        <Edit3 size={18} /> Update your report details. Changes will reflect live on the campus board.
+        <Edit3 size={18} /> Update your report details. Changes will reflect live on the campus
+        board.
       </div>
       <Form
         busy={busy}
@@ -1605,8 +1640,8 @@ function EditReport({item, meta, done}) {
         setError={setError}
         label="Save changes"
         onSubmit={async (_v, formData) => {
-          const res = await postFormData('/items/' + item.id, formData, 'PATCH');
-          done(res.message);
+          const res = await postFormData('/items/' + item.id, formData, 'PATCH')
+          done(res.message)
         }}
       >
         <Field
@@ -1696,7 +1731,7 @@ function EditReport({item, meta, done}) {
         )}
       </Form>
     </>
-  );
+  )
 }
 
 // Item Detail with Abuse Reporting (G-9)
@@ -1705,30 +1740,30 @@ function ItemDetail({item, user, signIn, onViewLocation, done, notify}) {
     [error, setError] = useState(''),
     [flagOpen, setFlagOpen] = useState(false),
     [flagBusy, setFlagBusy] = useState(false),
-    [flagReported, setFlagReported] = useState(false);
+    [flagReported, setFlagReported] = useState(false)
 
-  const Icon = icons[item.category] || Package;
+  const Icon = icons[item.category] || Package
   const hasPinnedLocation =
     item.latitude != null &&
     item.longitude != null &&
     Number.isFinite(Number(item.latitude)) &&
-    Number.isFinite(Number(item.longitude));
+    Number.isFinite(Number(item.longitude))
 
   const handleReportAbuse = async e => {
-    e.preventDefault();
-    setFlagBusy(true);
-    const fd = new FormData(e.currentTarget);
+    e.preventDefault()
+    setFlagBusy(true)
+    const fd = new FormData(e.currentTarget)
     try {
-      await post('/items/' + item.id + '/reports', Object.fromEntries(fd));
-      setFlagReported(true);
-      setFlagOpen(false);
-      notify('Thank you. This listing has been reported to campus moderators.');
+      await post('/items/' + item.id + '/reports', Object.fromEntries(fd))
+      setFlagReported(true)
+      setFlagOpen(false)
+      notify('Thank you. This listing has been reported to campus moderators.')
     } catch (err) {
-      notify(err.message);
+      notify(err.message)
     } finally {
-      setFlagBusy(false);
+      setFlagBusy(false)
     }
-  };
+  }
 
   return (
     <>
@@ -1859,11 +1894,7 @@ function ItemDetail({item, user, signIn, onViewLocation, done, notify}) {
               <button className="outline" type="submit" disabled={flagBusy}>
                 {flagBusy ? 'Submitting…' : 'Submit report'}
               </button>
-              <button
-                type="button"
-                className="text-btn"
-                onClick={() => setFlagOpen(false)}
-              >
+              <button type="button" className="text-btn" onClick={() => setFlagOpen(false)}>
                 Cancel
               </button>
             </div>
@@ -1871,43 +1902,43 @@ function ItemDetail({item, user, signIn, onViewLocation, done, notify}) {
         )}
       </div>
     </>
-  );
+  )
 }
 
 // Dashboard with Cancel Handoff (G-3), Owner Edit/Withdraw (G-4), Secret Clue (G-8)
 function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
   const [data, setData] = useState(null),
     [error, setError] = useState(''),
-    [busy, setBusy] = useState('');
+    [busy, setBusy] = useState('')
 
   useEffect(() => {
-    let alive = true;
+    let alive = true
     api('/dashboard')
       .then(d => {
         if (alive) {
-          setData(d);
-          setError('');
+          setData(d)
+          setError('')
         }
       })
       .catch(e => {
-        if (alive) setError(e.message);
-      });
+        if (alive) setError(e.message)
+      })
     return () => {
-      alive = false;
-    };
-  }, [revision]);
+      alive = false
+    }
+  }, [revision])
 
   const act = async (id, fn) => {
-    setBusy(id);
+    setBusy(id)
     try {
-      notify((await fn()).message);
-      refresh();
+      notify((await fn()).message)
+      refresh()
     } catch (e) {
-      notify(e.message);
+      notify(e.message)
     } finally {
-      setBusy('');
+      setBusy('')
     }
-  };
+  }
 
   return (
     <section className="dashboard">
@@ -1936,12 +1967,13 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
               ['Your reports', data.items.length],
               [
                 'Awaiting review',
-                data.claims.filter(c => c.role === 'reporter' && c.status === 'pending').length,
+                data.claims.filter(c => c.role === 'reporter' && c.status === 'pending').length
               ],
               [
                 'Approved handoffs',
-                data.claims.filter(c => c.status === 'approved' && c.item_status !== 'resolved').length,
-              ],
+                data.claims.filter(c => c.status === 'approved' && c.item_status !== 'resolved')
+                  .length
+              ]
             ].map(([t, n]) => (
               <div key={t}>
                 <span>{t}</span>
@@ -2023,7 +2055,9 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
                       <button
                         disabled={busy === c.id}
                         className="primary"
-                        onClick={() => act(c.id, () => post('/claims/' + c.id, {status: 'approved'}, 'PATCH'))}
+                        onClick={() =>
+                          act(c.id, () => post('/claims/' + c.id, {status: 'approved'}, 'PATCH'))
+                        }
                       >
                         <Check size={17} />
                         Approve
@@ -2031,7 +2065,9 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
                       <button
                         disabled={busy === c.id}
                         className="outline"
-                        onClick={() => act(c.id, () => post('/claims/' + c.id, {status: 'rejected'}, 'PATCH'))}
+                        onClick={() =>
+                          act(c.id, () => post('/claims/' + c.id, {status: 'rejected'}, 'PATCH'))
+                        }
                       >
                         Reject
                       </button>
@@ -2049,8 +2085,12 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
                           disabled={busy === c.id}
                           className="outline danger-btn"
                           onClick={() => {
-                            if (confirm('Cancel this handoff and return the item to the active board?'))
-                              act(c.id, () => post('/claims/' + c.id + '/cancel-handoff', {}));
+                            if (
+                              confirm(
+                                'Cancel this handoff and return the item to the active board?'
+                              )
+                            )
+                              act(c.id, () => post('/claims/' + c.id + '/cancel-handoff', {}))
                           }}
                         >
                           Cancel handoff
@@ -2062,7 +2102,7 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
                           className="outline"
                           onClick={() => {
                             if (confirm('Confirm that the item has been returned?'))
-                              act(c.id, () => post('/items/' + c.item_id + '/resolve', {}));
+                              act(c.id, () => post('/items/' + c.item_id + '/resolve', {}))
                           }}
                         >
                           Mark returned <CheckCircle2 size={16} />
@@ -2115,7 +2155,7 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
                           className="outline danger-btn"
                           onClick={() => {
                             if (confirm('Withdraw this report from the campus board?')) {
-                              act(i.id, () => api('/items/' + i.id, {method: 'DELETE'}));
+                              act(i.id, () => api('/items/' + i.id, {method: 'DELETE'}))
                             }
                           }}
                         >
@@ -2129,7 +2169,7 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
                         className="outline"
                         onClick={() => {
                           if (confirm('Confirm that the item has been returned?'))
-                            act(i.id, () => post('/items/' + i.id + '/resolve', {}));
+                            act(i.id, () => post('/items/' + i.id + '/resolve', {}))
                         }}
                       >
                         Mark returned
@@ -2143,7 +2183,7 @@ function Dashboard({revision, refresh, notify, openThread, openEdit, report}) {
         </>
       )}
     </section>
-  );
+  )
 }
 
 // Private Thread with Meetup State Machine (G-6) and Cancel Handoff (G-3)
@@ -2153,7 +2193,7 @@ function Thread({id, meta, notify, refresh}) {
     [body, setBody] = useState(''),
     [busy, setBusy] = useState(false),
     [meetBusy, setMeetBusy] = useState(false),
-    [meetError, setMeetError] = useState('');
+    [meetError, setMeetError] = useState('')
 
   const load = useCallback(
     () =>
@@ -2161,18 +2201,18 @@ function Thread({id, meta, notify, refresh}) {
         .then(setData)
         .catch(e => setError(e.message)),
     [id]
-  );
+  )
 
   useEffect(() => {
-    load();
-    const t = setInterval(load, 5000);
-    return () => clearInterval(t);
-  }, [load]);
+    load()
+    const t = setInterval(load, 5000)
+    return () => clearInterval(t)
+  }, [load])
 
-  if (error) return <div className="form-error">{error}</div>;
-  if (!data) return <div className="skeleton" />;
+  if (error) return <div className="form-error">{error}</div>
+  if (!data) return <div className="skeleton" />
 
-  const meetupStatus = data.claim.meetup_status || 'proposed';
+  const meetupStatus = data.claim.meetup_status || 'proposed'
 
   return (
     <>
@@ -2198,13 +2238,14 @@ function Thread({id, meta, notify, refresh}) {
             </div>
             <p>
               {new Date(data.claim.meetup_at).toLocaleString('en-IN', {
-                timeZone: 'Asia/Kolkata',
+                timeZone: 'Asia/Kolkata'
               })}{' '}
               IST
             </p>
             {meetupStatus === 'accepted' ? (
               <small className="meetup-msg-ok">
-                <Check size={14} /> Both students agreed on this checkpoint. Meet safely at the staffed reception.
+                <Check size={14} /> Both students agreed on this checkpoint. Meet safely at the
+                staffed reception.
               </small>
             ) : meetupStatus === 'declined' ? (
               <small className="meetup-msg-declined">
@@ -2212,7 +2253,8 @@ function Thread({id, meta, notify, refresh}) {
               </small>
             ) : data.claim.meetup_mine ? (
               <small className="meetup-msg-waiting">
-                <Clock size={13} /> You proposed this meetup. Awaiting confirmation from the other student.
+                <Clock size={13} /> You proposed this meetup. Awaiting confirmation from the other
+                student.
               </small>
             ) : (
               <div className="meetup-action-buttons">
@@ -2221,12 +2263,12 @@ function Thread({id, meta, notify, refresh}) {
                   className="primary mini-btn"
                   onClick={async () => {
                     try {
-                      await post(`/claims/${id}/meetup/accept`, {});
-                      notify('Meetup checkpoint confirmed!');
-                      await load();
-                      refresh();
+                      await post(`/claims/${id}/meetup/accept`, {})
+                      notify('Meetup checkpoint confirmed!')
+                      await load()
+                      refresh()
                     } catch (e) {
-                      notify(e.message);
+                      notify(e.message)
                     }
                   }}
                 >
@@ -2237,12 +2279,12 @@ function Thread({id, meta, notify, refresh}) {
                   className="outline mini-btn"
                   onClick={async () => {
                     try {
-                      await post(`/claims/${id}/meetup/decline`, {});
-                      notify('Meetup proposal declined.');
-                      await load();
-                      refresh();
+                      await post(`/claims/${id}/meetup/decline`, {})
+                      notify('Meetup proposal declined.')
+                      await load()
+                      refresh()
                     } catch (e) {
-                      notify(e.message);
+                      notify(e.message)
                     }
                   }}
                 >
@@ -2262,13 +2304,18 @@ function Thread({id, meta, notify, refresh}) {
           </div>
         ) : (
           data.messages.map(m => (
-            <div key={m.id} className={'message ' + (m.mine ? 'mine' : '') + (m.label === 'System' ? ' system-msg' : '')}>
+            <div
+              key={m.id}
+              className={
+                'message ' + (m.mine ? 'mine' : '') + (m.label === 'System' ? ' system-msg' : '')
+              }
+            >
               <small>{m.mine ? 'You' : m.label}</small>
               <p>{m.body}</p>
               <time>
                 {new Date(m.created_at + 'Z').toLocaleTimeString('en-IN', {
                   hour: '2-digit',
-                  minute: '2-digit',
+                  minute: '2-digit'
                 })}
               </time>
             </div>
@@ -2285,16 +2332,16 @@ function Thread({id, meta, notify, refresh}) {
           <form
             className="message-form"
             onSubmit={async e => {
-              e.preventDefault();
-              setBusy(true);
+              e.preventDefault()
+              setBusy(true)
               try {
-                await post('/claims/' + id + '/messages', {body});
-                setBody('');
-                await load();
+                await post('/claims/' + id + '/messages', {body})
+                setBody('')
+                await load()
               } catch (e) {
-                notify(e.message);
+                notify(e.message)
               } finally {
-                setBusy(false);
+                setBusy(false)
               }
             }}
           >
@@ -2326,10 +2373,10 @@ function Thread({id, meta, notify, refresh}) {
                   '/claims/' + id + '/meetup',
                   {...v, meetup_at: new Date(v.meetup_at).toISOString()},
                   'PATCH'
-                );
-                notify(d.message);
-                await load();
-                refresh();
+                )
+                notify(d.message)
+                await load()
+                refresh()
               }}
             >
               <label className="field">
@@ -2355,14 +2402,16 @@ function Thread({id, meta, notify, refresh}) {
               type="button"
               className="text-btn danger-text"
               onClick={async () => {
-                if (confirm('Cancel this handoff and return the item to the active campus board?')) {
+                if (
+                  confirm('Cancel this handoff and return the item to the active campus board?')
+                ) {
                   try {
-                    await post(`/claims/${id}/cancel-handoff`, {});
-                    notify('Handoff cancelled. Item returned to board.');
-                    await load();
-                    refresh();
+                    await post(`/claims/${id}/cancel-handoff`, {})
+                    notify('Handoff cancelled. Item returned to board.')
+                    await load()
+                    refresh()
                   } catch (e) {
-                    notify(e.message);
+                    notify(e.message)
                   }
                 }
               }}
@@ -2373,7 +2422,7 @@ function Thread({id, meta, notify, refresh}) {
         </>
       )}
     </>
-  );
+  )
 }
 
 // Admin Moderation Panel (G-9)
@@ -2381,38 +2430,40 @@ function AdminModeration({notify, refresh, openItem, onBack}) {
   const [reports, setReports] = useState([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
-    [busy, setBusy] = useState('');
+    [busy, setBusy] = useState('')
 
   const loadReports = useCallback(() => {
-    setLoading(true);
+    setLoading(true)
     api('/admin/reports')
       .then(d => {
-        setReports(d.reports || []);
-        setError('');
+        setReports(d.reports || [])
+        setError('')
       })
       .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
-    loadReports();
-  }, [loadReports]);
+    loadReports()
+  }, [loadReports])
 
   const handleDeleteItem = async (itemId, reportId) => {
-    if (!confirm('Are you sure you want to permanently delete this listing and its attached files?'))
-      return;
-    setBusy(reportId);
+    if (
+      !confirm('Are you sure you want to permanently delete this listing and its attached files?')
+    )
+      return
+    setBusy(reportId)
     try {
-      await api('/admin/items/' + itemId, {method: 'DELETE'});
-      notify('Offending listing removed.');
-      loadReports();
-      refresh();
+      await api('/admin/items/' + itemId, {method: 'DELETE'})
+      notify('Offending listing removed.')
+      loadReports()
+      refresh()
     } catch (e) {
-      notify(e.message);
+      notify(e.message)
     } finally {
-      setBusy('');
+      setBusy('')
     }
-  };
+  }
 
   return (
     <section className="dashboard admin-panel">
@@ -2420,7 +2471,9 @@ function AdminModeration({notify, refresh, openItem, onBack}) {
         <div>
           <span className="eyebrow">CAMPUS ADMINISTRATION</span>
           <h1>Listing Moderation Queue</h1>
-          <p>Review reports flagged by students for spam, policy violations, or improper content.</p>
+          <p>
+            Review reports flagged by students for spam, policy violations, or improper content.
+          </p>
         </div>
         <button className="outline" onClick={onBack}>
           Back to board
@@ -2452,7 +2505,8 @@ function AdminModeration({notify, refresh, openItem, onBack}) {
               </div>
               <h3>{r.item_title}</h3>
               <p className="small-note">
-                Venue: <strong>{r.item_venue}</strong> · Reporter: {r.reporter_name} ({r.reporter_email})
+                Venue: <strong>{r.item_venue}</strong> · Reporter: {r.reporter_name} (
+                {r.reporter_email})
               </p>
               {r.note && (
                 <div className="admin-report-note">
@@ -2471,7 +2525,7 @@ function AdminModeration({notify, refresh, openItem, onBack}) {
                       category: 'Lab Equipment',
                       description: 'Reported listing under moderation.',
                       occurred_on: '2026-09-01',
-                      challenge: 'Inspection',
+                      challenge: 'Inspection'
                     })
                   }
                 >
@@ -2490,7 +2544,7 @@ function AdminModeration({notify, refresh, openItem, onBack}) {
         </div>
       )}
     </section>
-  );
+  )
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(<App />)

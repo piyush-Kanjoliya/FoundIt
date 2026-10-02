@@ -1,12 +1,12 @@
-import {Router} from 'express';
-import {db, transaction} from '../db.js';
-import {requireAdmin} from '../middleware/auth.js';
-import {discardPhoto} from '../lib/photos.js';
+import {Router} from 'express'
+import {db, transaction} from '../db.js'
+import {requireAdmin} from '../middleware/auth.js'
+import {discardPhoto} from '../lib/photos.js'
 
-export const adminRouter = Router();
+export const adminRouter = Router()
 
 // Protect all admin routes
-adminRouter.use(requireAdmin);
+adminRouter.use(requireAdmin)
 
 /**
  * GET /api/admin/reports (G-9: View reported listings)
@@ -29,33 +29,33 @@ adminRouter.get('/reports', (_req, res, next) => {
         LEFT JOIN items i ON i.id = r.item_id
         ORDER BY r.created_at DESC`
       )
-      .all();
+      .all()
 
-    res.json({reports});
+    res.json({reports})
   } catch (err) {
-    next(err);
+    next(err)
   }
-});
+})
 
 /**
  * DELETE /api/admin/items/:id (G-9: Remove offensive or spam listing)
  */
 adminRouter.delete('/items/:id', (req, res, next) => {
   try {
-    const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);
+    const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id)
     if (!item) {
-      const error = new Error('Item not found.');
-      error.status = 404;
-      throw error;
+      const error = new Error('Item not found.')
+      error.status = 404
+      throw error
     }
 
     transaction(() => {
-      if (item.photo_key) discardPhoto(item.photo_key);
-      db.prepare('DELETE FROM items WHERE id = ?').run(item.id);
-    });
+      if (item.photo_key) discardPhoto(item.photo_key)
+      db.prepare('DELETE FROM items WHERE id = ?').run(item.id)
+    })
 
-    res.json({message: 'Item has been removed by campus moderator.'});
+    res.json({message: 'Item has been removed by campus moderator.'})
   } catch (err) {
-    next(err);
+    next(err)
   }
-});
+})

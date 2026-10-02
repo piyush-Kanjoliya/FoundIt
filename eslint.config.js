@@ -1,6 +1,6 @@
-import js from '@eslint/js';
-import reactHooks from 'eslint-plugin-react-hooks';
-import globals from 'globals';
+import js from '@eslint/js'
+import reactHooks from 'eslint-plugin-react-hooks'
+import globals from 'globals'
 
 export default [
   {
@@ -10,8 +10,8 @@ export default [
       'client/node_modules/',
       'data/',
       'playwright-report/',
-      'test-results/',
-    ],
+      'test-results/'
+    ]
   },
   js.configs.recommended,
   {
@@ -20,7 +20,7 @@ export default [
       ecmaVersion: 2025,
       sourceType: 'module',
       parserOptions: {ecmaFeatures: {jsx: true}},
-      globals: {...globals.browser, ...globals.node},
+      globals: {...globals.browser, ...globals.node}
     },
     plugins: {'react-hooks': reactHooks},
     rules: {
@@ -32,10 +32,7 @@ export default [
       // Intentional empty catch blocks (optional storage, best-effort cleanup).
       'no-empty': ['error', {allowEmptyCatch: true}],
       // Express error handlers keep the arity; `_`-prefixed args are unused.
-      'no-unused-vars': [
-        'error',
-        {argsIgnorePattern: '^_', ignoreRestSiblings: true},
-      ],
-    },
-  },
-];
+      'no-unused-vars': ['error', {argsIgnorePattern: '^_', ignoreRestSiblings: true}]
+    }
+  }
+]
