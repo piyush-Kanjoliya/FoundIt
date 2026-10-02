@@ -21,7 +21,8 @@
     "db:init": "node scripts/bootstrap.js",
     "db:seed": "node scripts/seed.js",
     "db:reset": "node scripts/reset.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
